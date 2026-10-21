@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from app.config import settings
+from app.models.base import Base
 
 config = context.config
 
@@ -17,7 +18,7 @@ if config.config_file_name is not None:
 # Dynamically set database URL from app settings
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
-target_metadata = None
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
