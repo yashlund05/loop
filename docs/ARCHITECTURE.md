@@ -96,6 +96,12 @@ Benchmark of on-device vs server for the **photo-quality model** (one model only
 
 ## 7. Security and privacy
 
+- **Database Connection Role & RLS Architecture:**
+  - The API service connects to PostgreSQL via the connection pooler as the `postgres` database user.
+  - In PostgreSQL, the `postgres` superuser / table owner role possesses `BYPASSRLS` privileges, meaning table-level RLS policies are **bypassed** on direct pooler connections.
+  - **Defense-in-Depth Layer 1 (Application-Level Ownership):** Every request-path API route handler explicitly filters and enforces ownership checks using the authenticated user's claim (`where(User.auth_uid == current_user.auth_uid)`).
+  - **Defense-in-Depth Layer 2 (PostgreSQL RLS & Force RLS):** All identity and user tables have RLS enabled (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY`) with `FORCE ROW LEVEL SECURITY` applied where supported, ensuring direct client/PostgREST queries running under the Supabase `anon` or `authenticated` roles are strictly isolated.
+  - **Defense-in-Depth Layer 3 (Isolated Admin Service):** All `service_role` operations (storage purge, admin user deletion) are restricted to `app/services/admin_service.py` and never imported into general request-path routers.
 - Supabase Row Level Security on every table; the API uses the user's JWT, not the service key, except in admin/worker paths.
 - HTTPS; short-lived JWT + refresh; rate limiting on auth, upload, chat, OTP endpoints.
 - Upload validation (MIME, size ≤ 8 MB, dimensions), re-encode to strip EXIF/hidden payloads.
@@ -122,3 +128,4 @@ Benchmark of on-device vs server for the **photo-quality model** (one model only
 | Realtime chat via Supabase Realtime                 | No custom WebSocket server to maintain                                                                                                                                                                                                                                           | Need custom moderation hooks in-stream                           |
 | MLflow local file store                             | No hosted server needed                                                                                                                                                                                                                                                          | Multi-user experiment tracking required                          |
 | Tailwind CSS v4 (CSS-first config)                  | Resolves multiple high-severity PostCSS vulnerabilities present in legacy v3 pipelines (`postcss <=8.5.22` XSS and arbitrary file read), adopts modern CSS-first `@import "tailwindcss";` configuration without JS config overhead, and leverages the faster Oxide build engine. | Need complex JavaScript-based theme plugins not yet ported to v4 |
+| Explicit Route Ownership + RLS Defense-in-Depth     | Backend connects as `postgres` role (which possesses `BYPASSRLS`); application-level queries explicitly filter by `current_user.auth_uid`, while PostgreSQL RLS provides outer boundary isolation for `authenticated` and `anon` clients.                                        | Switching to dynamic per-request database connection roles       |

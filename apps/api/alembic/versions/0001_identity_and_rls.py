@@ -76,6 +76,9 @@ def upgrade() -> None:
     op.execute("ALTER TABLE users ENABLE ROW LEVEL SECURITY;")
     op.execute("ALTER TABLE communities ENABLE ROW LEVEL SECURITY;")
     op.execute("ALTER TABLE memberships ENABLE ROW LEVEL SECURITY;")
+    op.execute("ALTER TABLE users FORCE ROW LEVEL SECURITY;")
+    op.execute("ALTER TABLE communities FORCE ROW LEVEL SECURITY;")
+    op.execute("ALTER TABLE memberships FORCE ROW LEVEL SECURITY;")
 
     # 5. RLS Policies
     # Users policies
