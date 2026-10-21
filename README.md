@@ -4,37 +4,48 @@ LOOP is a hyperlocal marketplace for campus communities to sell, donate, and swa
 
 ---
 
+## Prerequisites: Hosted Supabase Dev Project
+
+Development uses a dedicated, free-tier hosted Supabase project populated strictly with synthetic/seed data (no local Docker or WSL installation required):
+
+1. Create a free account at [supabase.com](https://supabase.com) and create a project (e.g., `loop-dev`).
+2. Go to **Project Settings $\rightarrow$ API** to copy your `Project URL`, `anon` key, and `service_role` key.
+3. Go to **Project Settings $\rightarrow$ Database** to copy your PostgreSQL connection string.
+4. Ensure no production or personal data is stored in the development project.
+
+---
+
 ## Quickstart (Under 10 Commands)
 
-Follow these steps to run the complete local development environment:
+Local development runs directly on native Python and Node.js without requiring Docker or WSL:
 
 ```bash
-# 1. Clone the repository and enter directory
+# 1. Clone repository and enter directory
 git clone https://github.com/loop-marketplace/loop.git && cd loop
 
-# 2. Copy the environment configuration template
+# 2. Copy environment template and fill in hosted Supabase credentials
 cp .env.example .env
 
-# 3. Initialize and start local Supabase services (Auth, Postgres, Storage)
-supabase init && supabase start
+# 3. Create and activate Python 3.11 virtual environment for API
+python3.11 -m venv apps/api/.venv && source apps/api/.venv/bin/activate  # Windows: apps\api\.venv\Scripts\activate
 
-# 4. Create and activate Python 3.11 virtual environment for API
-python3.11 -m venv apps/api/.venv && source apps/api/.venv/bin/activate  # on Windows: apps/api/.venv/Scripts/activate
+# 4. Install backend dependencies
+pip install -r apps/api/requirements.txt
 
-# 5. Install backend dependencies and run database migrations
-pip install -r apps/api/requirements.txt && cd apps/api && alembic upgrade head && cd ../..
+# 5. Run database migrations against your hosted dev project
+cd apps/api && alembic upgrade head && cd ../..
 
 # 6. Install frontend dependencies
 npm --prefix apps/web ci
 
-# 7. Start both services via Docker Compose (or run individually)
-docker compose up
+# 7. Start FastAPI backend (runs at http://localhost:8000)
+cd apps/api && uvicorn app.main:app --reload --port 8000
+
+# 8. In a separate terminal, start Next.js web frontend (runs at http://localhost:3000)
+npm --prefix apps/web run dev
 ```
 
-To run without Docker:
-
-- API: `cd apps/api && uvicorn app.main:app --reload --port 8000`
-- Web: `npm --prefix apps/web run dev`
+> **Note on Docker:** Docker and WSL are completely optional for local development. Docker images and container healthchecks are automatically built and smoke-tested on every push via GitHub Actions CI (`docker-compose-test` job). If you have Docker installed and prefer containerized workflows, you can optionally run `docker compose up`.
 
 ---
 
@@ -54,3 +65,4 @@ npm --prefix apps/web run lint && npm --prefix apps/web run build
 
 All proprietary code is Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved.
 Third-party permissive licenses and attributions are cataloged in [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md).
+Security exceptions are documented in [`docs/SECURITY_EXCEPTIONS.md`](./docs/SECURITY_EXCEPTIONS.md).

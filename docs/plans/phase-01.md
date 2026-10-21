@@ -32,7 +32,7 @@
 
 ### Roadmap Acceptance Checks to Verify
 
-1. `docker compose up` configuration serves web and API (or report NOT VERIFIED if Docker is unavailable).
+1. `docker compose up` configuration serves web and API: verified via GitHub Actions CI job `docker-compose-test` (builds images, starts containers, and verifies HTTP 200 on `/health` and `/`); Docker/WSL is optional locally.
 2. `GET /health` returns HTTP 200 `{"status": "healthy"}`.
 3. CI is green on an empty/baseline test suite: **PARTIAL** (local equivalents passed; GitHub Actions run pending owner push of the branch).
 4. README explains local setup in under 10 commands (including Supabase CLI).

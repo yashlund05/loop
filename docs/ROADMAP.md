@@ -49,7 +49,7 @@ How agents use this file: do phases in order, one task at a time. Each task list
 - `verify-community` via email domain or join code; Verified badge; coarse area on profile; account export/delete endpoints.
 - Frontend: auth pages, profile page, consent screen.
 
-**Acceptance:** anonymous requests to protected routes → 401; wrong join code rejected; no exact address field exists; delete removes user data (test); RLS test proves user A cannot read user B's private rows.
+**Acceptance:** anonymous requests to protected routes → 401; wrong join code rejected; no exact address field exists; delete removes user data (test); RLS test proves user A cannot read user B's private rows (RLS and auth tests run against the hosted dev project using a separate test schema or test users cleaned up after each run).
 
 ## Phase 4: Listings and image upload (with stubbed AI)
 

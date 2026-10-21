@@ -88,3 +88,59 @@ jobs:
       - name: Full Dependency Audit (Informational / Non-Blocking)
         working-directory: apps/web
         run: npm audit || true
+
+  docker-compose-test:
+    name: Docker Compose Integration Smoke Test
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy Environment Template
+        run: cp .env.example .env
+
+      - name: Build and Start Containers
+        run: docker compose up -d --build
+
+      - name: Wait for API and Verify /health (HTTP 200)
+        run: |
+          echo "Waiting for API service at http://localhost:8000/health..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health || true)
+            if [ "$STATUS" -eq 200 ]; then
+              echo "API is healthy (HTTP 200)"
+              break
+            fi
+            echo "Attempt $i: received status $STATUS. Retrying in 2s..."
+            sleep 2
+          done
+          FINAL_API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health || true)
+          if [ "$FINAL_API_STATUS" -ne 200 ]; then
+            echo "ERROR: API /health returned status $FINAL_API_STATUS (expected 200)"
+            docker compose logs api
+            exit 1
+          fi
+
+      - name: Wait for Web and Verify Root (HTTP 200)
+        run: |
+          echo "Waiting for Web service at http://localhost:3000/..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || true)
+            if [ "$STATUS" -eq 200 ]; then
+              echo "Web root is reachable (HTTP 200)"
+              break
+            fi
+            echo "Attempt $i: received status $STATUS. Retrying in 2s..."
+            sleep 2
+          done
+          FINAL_WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || true)
+          if [ "$FINAL_WEB_STATUS" -ne 200 ]; then
+            echo "ERROR: Web root returned status $FINAL_WEB_STATUS (expected 200)"
+            docker compose logs web
+            exit 1
+          fi
+
+      - name: Tear Down Containers
+        if: always()
+        run: docker compose down
