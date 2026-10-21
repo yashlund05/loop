@@ -1,0 +1,63 @@
+# Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved.
+
+[project]
+name = "loop-api"
+version = "0.1.0"
+description = "FastAPI backend for LOOP"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.6",
+    "pydantic>=2.10.4",
+    "pydantic-settings>=2.7.0",
+    "uvicorn>=0.34.0",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.0",
+    "httpx>=0.28.1",
+    "ruff>=0.8.4",
+    "black>=24.10.0",
+    "mypy>=1.14.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [".venv", "alembic"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B"]
+ignore = []
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | alembic
+)/
+'''
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+exclude = [
+    '^alembic/',
+    '^\.venv/',
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
