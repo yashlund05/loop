@@ -34,7 +34,7 @@
 
 1. `docker compose up` configuration serves web and API (or report NOT VERIFIED if Docker is unavailable).
 2. `GET /health` returns HTTP 200 `{"status": "healthy"}`.
-3. CI is green on an empty/baseline test suite.
+3. CI is green on an empty/baseline test suite: **PARTIAL** (local equivalents passed; GitHub Actions run pending owner push of the branch).
 4. README explains local setup in under 10 commands (including Supabase CLI).
 5. All new source files contain the required copyright header.
 6. `THIRD_PARTY_LICENSES.md` logs all runtime dependencies and Superpowers skills.
@@ -44,25 +44,30 @@
 ## Tasks
 
 ### Task 0: Comprehensive .gitignore
+
 - Prevent committing `.env`, `node_modules`, `__pycache__`, `.pytest_cache`, `.next`, `dist`, `ml/data/` (except manifests), and weights.
 
 ### Task 1: Repository Structure & Legal Foundation Files
+
 - Create directory layout per `AGENTS.md` §4.
 - Create `LICENSE` ("All rights reserved" placeholder).
 - Create `NOTICE`.
 - Create `THIRD_PARTY_LICENSES.md` logging runtime dependencies and Superpowers skills (with unknown source flags).
 
 ### Task 2: Backend Skeleton (`apps/api`), `/health` Endpoint & Tests
+
 - TDD Red-Green: Failing test for `/health` first.
 - Implement FastAPI app, config, router, and schemas.
 - Pinned requirements lockfile.
 - Verify tests pass with `py -3.11 -m pytest`.
 
 ### Task 3: Alembic Database Migrations Setup (`apps/api`)
+
 - Alembic configuration dynamically reading `DATABASE_URL` from settings.
 - Verify configuration.
 
 ### Task 4: Frontend Skeleton (`apps/web`), Tailwind CSS & PWA Manifest
+
 - Next.js App Router, TypeScript, Tailwind CSS.
 - PWA manifest (`manifest.webmanifest` / `app/manifest.ts`).
 - Mobile-first responsive layout (360px viewport).
@@ -71,21 +76,25 @@
 - **[STOP FOR REVIEW GATE 1]**
 
 ### Task 5: Linters, Formatters, Type-checkers & Copyright Pre-Commit Hook
+
 - Ruff, black, mypy configuration.
 - ESLint, Prettier configuration.
 - Copyright header check script (`scripts/check_copyright_headers.py`).
 - `.pre-commit-config.yaml`.
 
 ### Task 6: Docker Compose & Environment Configuration
+
 - `.env.example` (web, api, supabase variables).
 - `Dockerfile` for API (Python 3.11) and Web (Node 22 multi-stage).
 - `docker-compose.yml` (web and api services only).
 
 ### Task 7: GitHub Actions CI Pipeline & Setup README (< 10 Commands)
+
 - `.github/workflows/ci.yml`.
 - `README.md` with < 10 commands setup including Supabase CLI.
 
 ### Task 8: Verification of Acceptance Checks & Reporting
+
 - Execute linting, typing, tests, copyright check.
 - Compile acceptance report.
 - **[STOP FOR REVIEW GATE 2]**

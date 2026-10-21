@@ -3,9 +3,11 @@
 Purpose: turn the finished project into a research paper without rework. Agents: when you finish an experiment, save its outputs where this file says, so the paper can be assembled from logged runs.
 
 ## 1. Proposed thesis and contributions
-**Working title:** *LOOP: A Human-in-the-Loop, Privacy-Preserving AI Marketplace for Hyperlocal Reuse* (change once results are known).
+
+**Working title:** _LOOP: A Human-in-the-Loop, Privacy-Preserving AI Marketplace for Hyperlocal Reuse_ (change once results are known).
 
 **Contributions (claim only what the results support):**
+
 1. A system that learns from seller corrections, with a measured accuracy-vs-corrections curve against random and uncertainty-sampling baselines (Phase 15).
 2. A browser-side photo-quality check and privacy scrubber, with a measured on-device vs server comparison and a recall-first privacy evaluation (Phase 7).
 3. Explainable condition grading and interval-based price estimation with conformal coverage, compared against baselines (Phases 9, 10).
@@ -15,43 +17,48 @@ Purpose: turn the finished project into a research paper without rework. Agents:
 If a contribution's experiment fails or is weak, demote it to "system description" or "limitations". Do not oversell.
 
 ## 2. Target venue (decide early; the choice sets length and format)
-| Option | Fit | Notes |
-|---|---|---|
-| Applied ML / HCI workshop | Best first target | Short (4 to 8 pages), tolerant of small data |
-| Student or regional conference (India) | Good | Check proceedings indexing and fees |
-| Journal (applied AI, information systems) | Possible with a stronger study | Longer review cycle |
+
+| Option                                    | Fit                            | Notes                                        |
+| ----------------------------------------- | ------------------------------ | -------------------------------------------- |
+| Applied ML / HCI workshop                 | Best first target              | Short (4 to 8 pages), tolerant of small data |
+| Student or regional conference (India)    | Good                           | Check proceedings indexing and fees          |
+| Journal (applied AI, information systems) | Possible with a stronger study | Longer review cycle                          |
+
 Record the chosen venue, deadline and template here: `TBD`.
 
 ## 3. Section outline and where each piece comes from
-| Section | Content | Source in repo |
-|---|---|---|
-| Abstract | Problem, method, headline measured results, limits | all phases |
-| 1 Introduction | Problem, research question, contributions | PRD §2 |
-| 2 Related work | Classifieds platforms, price estimation, condition grading, active learning, on-device ML, privacy in images, explainability | write from literature search (cite properly) |
-| 3 System | Architecture, flows | ARCHITECTURE.md |
-| 4 Methods | Models, datasets, scrubber, active learning, simulator | ML_SPEC.md |
-| 5 Experiments | Per-model results vs baselines; ablations | `ml/reports/` |
-| 6 User study | Design, participants, SUS, time, trust | `ml/reports/user_study/` |
-| 7 Simulation | Swap, trust, fraud, price-drop; sensitivity | `sim/reports/` (captioned "synthetic") |
-| 8 Discussion | What worked, failures, ethics, privacy | |
-| 9 Limitations | Small local data, synthetic evaluation, approximate condition grading | PRD §10, ML_SPEC |
-| 10 Conclusion and future work | | |
+
+| Section                       | Content                                                                                                                      | Source in repo                               |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Abstract                      | Problem, method, headline measured results, limits                                                                           | all phases                                   |
+| 1 Introduction                | Problem, research question, contributions                                                                                    | PRD §2                                       |
+| 2 Related work                | Classifieds platforms, price estimation, condition grading, active learning, on-device ML, privacy in images, explainability | write from literature search (cite properly) |
+| 3 System                      | Architecture, flows                                                                                                          | ARCHITECTURE.md                              |
+| 4 Methods                     | Models, datasets, scrubber, active learning, simulator                                                                       | ML_SPEC.md                                   |
+| 5 Experiments                 | Per-model results vs baselines; ablations                                                                                    | `ml/reports/`                                |
+| 6 User study                  | Design, participants, SUS, time, trust                                                                                       | `ml/reports/user_study/`                     |
+| 7 Simulation                  | Swap, trust, fraud, price-drop; sensitivity                                                                                  | `sim/reports/` (captioned "synthetic")       |
+| 8 Discussion                  | What worked, failures, ethics, privacy                                                                                       |                                              |
+| 9 Limitations                 | Small local data, synthetic evaluation, approximate condition grading                                                        | PRD §10, ML_SPEC                             |
+| 10 Conclusion and future work |                                                                                                                              |                                              |
 
 ## 4. Figures and tables (from ML_SPEC §15)
-| # | Figure | Produced in | Save to |
-|---|---|---|---|
-| 1 | Active learning curves (3 strategies, error bands) | Phase 15 | `ml/reports/active_learning/` |
-| 2 | On-device vs server latency + size | Phase 7 | `ml/reports/ondevice_vs_server/` |
-| 3 | Scrubber recall/precision, residual leak rate | Phase 7 | `ml/reports/scrubber/` |
-| 4 | Price: predicted vs actual, coverage, SHAP example | Phase 10 | `ml/reports/price/` |
-| 5 | Condition confusion matrix + Grad-CAM examples | Phase 9 | `ml/reports/condition/` |
-| 6 | Search metrics, English vs Hinglish | Phase 12 | `ml/reports/search/` |
-| 7 | Simulator results | Phase 17 | `sim/reports/` |
-| 8 | User-study results | Phase 18 | `ml/reports/user_study/` |
+
+| #   | Figure                                             | Produced in | Save to                          |
+| --- | -------------------------------------------------- | ----------- | -------------------------------- |
+| 1   | Active learning curves (3 strategies, error bands) | Phase 15    | `ml/reports/active_learning/`    |
+| 2   | On-device vs server latency + size                 | Phase 7     | `ml/reports/ondevice_vs_server/` |
+| 3   | Scrubber recall/precision, residual leak rate      | Phase 7     | `ml/reports/scrubber/`           |
+| 4   | Price: predicted vs actual, coverage, SHAP example | Phase 10    | `ml/reports/price/`              |
+| 5   | Condition confusion matrix + Grad-CAM examples     | Phase 9     | `ml/reports/condition/`          |
+| 6   | Search metrics, English vs Hinglish                | Phase 12    | `ml/reports/search/`             |
+| 7   | Simulator results                                  | Phase 17    | `sim/reports/`                   |
+| 8   | User-study results                                 | Phase 18    | `ml/reports/user_study/`         |
 
 Every figure is generated by a script (`ml/reports/make_figures.py`) from logged runs, not hand-edited. Filename includes the run ID. Synthetic-data figures carry "(simulated)" in the caption.
 
 ## 5. Reproducibility checklist (needed by most venues)
+
 - [ ] Code and configs tagged at a release commit (`paper-v1`)
 - [ ] Seeds, hyperparameters, data-manifest hashes logged in MLflow
 - [ ] Dataset documentation (datasheet): collection, consent, annotators, kappa, known biases
@@ -62,18 +69,22 @@ Every figure is generated by a script (`ml/reports/make_figures.py`) from logged
 - [ ] Negative and null results reported
 
 ## 6. Ethics, privacy and data release
+
 - Ethics approval and consent before data collection and the user study (see IP_AND_COMPLIANCE.md §3).
 - Do **not** release raw photos containing people, IDs or plates. Release only scrubbed or staged images, or release labels and embeddings only, and only where consent covers it.
 - Release price data only if the source licences allow it.
 
 ## 7. Authorship and acknowledgements
+
 Decide authors and order, supervisor role and university affiliation before writing (see IP_AND_COMPLIANCE.md §1). Acknowledge volunteers, annotators and the data sources.
 
 ## 8. Writing timeline (relative to Phase 18)
+
 1. During Phases 7 to 15: write Methods text as each experiment finishes.
 2. Phase 17: draft Experiments and Simulation sections.
 3. Phase 18: run the user study, then write Results, Discussion, Limitations, Abstract.
 4. Before submission: advisor review, plagiarism check, licence and ethics statements, final reproducibility pass.
 
 ## 9. Claim-audit rule
+
 Before submitting, every number and claim in the paper is checked against its run ID. Any claim without a source is deleted or marked as an assumption.

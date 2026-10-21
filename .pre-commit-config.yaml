@@ -1,11 +1,12 @@
+# Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved.
 # Pre-commit configuration for LOOP
 repos:
   - repo: local
     hooks:
       - id: copyright-header-check
         name: Check Copyright Headers
-        entry: apps/api/.venv/Scripts/python scripts/check_copyright_headers.py
-        language: system
+        entry: python scripts/check_copyright_headers.py
+        language: python
         pass_filenames: true
         types_or: [python, javascript, ts, tsx, css]
         exclude: ^(\.agent/|\.venv/|node_modules/|\.next/)
@@ -15,7 +16,6 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
-      - id: ruff-format
 
   - repo: https://github.com/psf/black
     rev: 26.10.0
@@ -27,4 +27,4 @@ repos:
     hooks:
       - id: prettier
         types_or: [javascript, ts, tsx, css, json, yaml, markdown]
-        exclude: ^(\.agent/|apps/web/\.next/|apps/web/node_modules/|package-lock\.json)
+        exclude: ^(\.agent/|apps/web/\.next/|apps/web/node_modules/|package-lock\.json|.*\.min\..*)

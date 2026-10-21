@@ -7,8 +7,8 @@ export default function Home() {
           Welcome to LOOP
         </h1>
         <p className="max-w-md text-sm text-slate-600 sm:text-base">
-          Sell, donate, and swap pre-owned goods across Electronics, Furniture, Books, and Hobbies in
-          your local community.
+          Sell, donate, and swap pre-owned goods across Electronics, Furniture, Books, and Hobbies
+          in your local community.
         </p>
       </div>
 

@@ -4,7 +4,9 @@
 import sys
 from pathlib import Path
 
-REQUIRED_NOTICE = "Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved."
+REQUIRED_NOTICE = (
+    "Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved."
+)
 
 COMMENT_PATTERNS = {
     ".py": ("#", "#"),

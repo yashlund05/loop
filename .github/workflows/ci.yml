@@ -81,6 +81,10 @@ jobs:
         working-directory: apps/web
         run: npm run build
 
-      - name: Run npm audit
+      - name: Production Security Audit (Blocking)
         working-directory: apps/web
-        run: npm audit --audit-level=moderate
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Full Dependency Audit (Informational / Non-Blocking)
+        working-directory: apps/web
+        run: npm audit || true

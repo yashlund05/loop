@@ -32,6 +32,7 @@ docker compose up
 ```
 
 To run without Docker:
+
 - API: `cd apps/api && uvicorn app.main:app --reload --port 8000`
 - Web: `npm --prefix apps/web run dev`
 
