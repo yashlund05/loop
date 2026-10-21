@@ -36,3 +36,13 @@ This document logs known security advisories that are accepted as non-blocking e
    - Frontend: `npm audit --omit=dev --audit-level=high` (must report 0 production vulnerabilities).
 2. **Development Audit (Non-Blocking / Informational):**
    - Frontend: `npm audit` runs to monitor dev-dependency posture without blocking build pipelines for unpatched upstream dev tools.
+
+---
+
+## 4. Known Architectural Limitations
+
+### 1. In-Memory Join-Code Rate Limiter (`apps/api/app/services/rate_limiter.py`)
+
+- **Limitation:** The in-memory sliding-window state (`JoinCodeRateLimiter`) is single-instance only and resets upon application restart or worker respawn.
+- **Scope:** Accepted for Phase 3 development, testing, and single-instance container deployments.
+- **Production Migration Path:** For distributed, multi-instance production deployments behind a load balancer, the in-memory counter must be replaced with a Redis / Valkey sliding-window key or a PostgreSQL bucket using atomic transaction primitives.

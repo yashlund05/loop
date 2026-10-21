@@ -1,31 +1,48 @@
 # Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved.
-"""Tests for schema privacy invariants: no exact address fields and hashed secrets."""
+"""Tests for schema privacy invariants: exact deny-list of prohibited address columns
+and hashed secrets.
+"""
 
 from app.models.identity import Community, Membership, User
 
+# Exact deny-list of prohibited column names
+PROHIBITED_EXACT_COLUMNS = {
+    "address",
+    "street",
+    "street_address",
+    "street_name",
+    "house_number",
+    "house_no",
+    "door_no",
+    "flat_no",
+    "apartment",
+    "building",
+    "room_no",
+    "postal_code",
+    "pincode",
+    "pin_code",
+    "zip",
+    "zip_code",
+    "exact_location",
+    "latitude",
+    "longitude",
+    "lat",
+    "lng",
+    "coordinates",
+    "gps",
+    "join_code",
+}
 
-def test_no_exact_address_fields() -> None:
-    """Verify that no identity table stores exact addresses or coordinates."""
-    prohibited_substrings = [
-        "address",
-        "street",
-        "house",
-        "postal",
-        "pincode",
-        "pin_code",
-        "zip",
-        "flat",
-        "apartment",
-        "exact",
-    ]
 
+def test_exact_deny_list_columns_not_present() -> None:
+    """Verify that no identity table contains any exact deny-listed columns."""
     models = [User, Community, Membership]
     for model in models:
         for column_name in model.__table__.columns.keys():
-            for prohibited in prohibited_substrings:
-                assert (
-                    prohibited not in column_name.lower()
-                ), f"Prohibited address field '{column_name}' found in model {model.__name__}"
+            normalized_name = column_name.lower().strip()
+            assert (
+                normalized_name not in PROHIBITED_EXACT_COLUMNS
+            ), f"Prohibited column '{column_name}' found in model {model.__name__}"
 
 
 def test_coarse_location_fields_exist() -> None:

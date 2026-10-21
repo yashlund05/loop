@@ -17,9 +17,11 @@ class Settings(BaseSettings):
     supabase_anon_key: str = ""
     supabase_jwt_secret: str = "dev-jwt-secret-do-not-use-in-production-needs-32-chars"
     supabase_service_role_key: str = ""
+    supabase_issuer: str = ""
 
     # Identity and community verification settings
-    seed_join_code: str = "LOOP-DEMO-2026"
+    seed_join_code: str = ""
+    join_code_pepper: str = "dev-secret-pepper-must-be-configured-in-env"
     college_domain: str = "adypu.edu.in"
 
     model_config = SettingsConfigDict(

@@ -1,21 +1,20 @@
 # Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved.
-"""Authentication dependencies for Supabase JWT verification."""
+"""Authentication dependencies for Supabase JWT verification using PyJWT."""
 
-import base64
-import hashlib
-import hmac
-import json
-import time
 import uuid
 from dataclasses import dataclass
-from typing import Any, Optional, cast
+from typing import Any, Optional
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt.types import Options
 
 from app.config import Settings, get_settings
 
 bearer_scheme = HTTPBearer(auto_error=False)
+
+ALLOWED_ALGORITHMS = ["HS256"]
 
 
 @dataclass
@@ -26,60 +25,75 @@ class AuthenticatedUser:
     raw_payload: dict[str, Any]
 
 
-def _decode_b64url(data: str) -> bytes:
-    padding = "=" * ((4 - len(data) % 4) % 4)
-    return base64.urlsafe_b64decode(data + padding)
+def verify_supabase_jwt(
+    token: str, secret: str, expected_issuer: Optional[str] = None
+) -> dict[str, Any]:
+    """Verify Supabase JWT using PyJWT.
 
+    Security Requirements:
+    - Pinned allowed algorithms: HS256 (matches Supabase project shared secret signing).
+    - Rejects 'alg=none' and asymmetric algorithm confusion.
+    - Requires 'exp', 'aud="authenticated"', and 'iss'.
+    """
+    req_claims = ["exp", "aud"]
+    if expected_issuer:
+        req_claims.append("iss")
 
-def verify_supabase_jwt(token: str, secret: str) -> dict[str, Any]:
-    """Verify an HS256 JWT signature and expiration."""
-    parts = token.split(".")
-    if len(parts) != 3:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Malformed token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    header_b64, payload_b64, sig_b64 = parts
+    decode_options: Options = {
+        "verify_signature": True,
+        "verify_exp": True,
+        "verify_aud": True,
+        "verify_iss": bool(expected_issuer),
+        "require": req_claims,
+    }
 
     try:
-        header = json.loads(_decode_b64url(header_b64).decode("utf-8"))
-        if header.get("alg") != "HS256":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Unsupported signing algorithm",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        signing_input = f"{header_b64}.{payload_b64}".encode("utf-8")
-        expected_sig = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
-        actual_sig = _decode_b64url(sig_b64)
-
-        if not hmac.compare_digest(expected_sig, actual_sig):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token signature",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        payload = json.loads(_decode_b64url(payload_b64).decode("utf-8"))
-    except (ValueError, json.JSONDecodeError) as err:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token encoding",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from err
-
-    exp = payload.get("exp")
-    if exp is not None and time.time() > float(exp):
+        payload: dict[str, Any] = jwt.decode(
+            token,
+            key=secret,
+            algorithms=ALLOWED_ALGORITHMS,
+            audience="authenticated",
+            issuer=expected_issuer if expected_issuer else None,
+            options=decode_options,
+        )
+    except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from err
+    except jwt.InvalidAudienceError as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token audience",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from err
+    except jwt.InvalidIssuerError as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token issuer",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from err
+    except jwt.InvalidAlgorithmError as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or unsupported signing algorithm",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from err
+    except jwt.MissingRequiredClaimError as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Missing required token claim: {err}",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from err
+    except jwt.PyJWTError as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {type(err).__name__}",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from err
 
-    return cast(dict[str, Any], payload)
+    return payload
 
 
 async def get_current_user(
@@ -94,7 +108,17 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    payload = verify_supabase_jwt(credentials.credentials, settings.supabase_jwt_secret)
+    expected_issuer = (
+        settings.supabase_issuer
+        if settings.supabase_issuer
+        else (f"{settings.supabase_url}/auth/v1" if settings.supabase_url else None)
+    )
+
+    payload = verify_supabase_jwt(
+        credentials.credentials,
+        secret=settings.supabase_jwt_secret,
+        expected_issuer=expected_issuer,
+    )
 
     sub = payload.get("sub")
     if not sub:

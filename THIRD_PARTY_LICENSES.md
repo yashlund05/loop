@@ -32,6 +32,7 @@ All dependencies, models, datasets, and tooling used in LOOP must adhere to perm
 | `ruff`              | 0.8.4   | MIT / Apache-2.0 | `https://github.com/astral-sh/ruff`             | Fast Python linter                        |
 | `black`             | 26.10.0 | MIT              | `https://github.com/psf/black`                  | Python code formatter (audited & patched) |
 | `mypy`              | 1.14.0  | MIT              | `https://github.com/python/mypy`                | Static type checker                       |
+| `pyjwt`             | 2.15.1  | MIT              | `https://github.com/jpadilla/pyjwt`             | RFC 7519 JWT verification & decode        |
 
 ---
 

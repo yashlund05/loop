@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved.
-"""Tests for community verification rules and rate limiting.
+"""Tests for community verification rules and rate limiting using PyJWT and HMAC pepper.
 
 Roadmap Acceptance Checks:
 - Anonymous requests to protected routes return HTTP 401 Unauthorized.
@@ -8,13 +8,10 @@ Roadmap Acceptance Checks:
 - Valid confirmed college email or valid join code grants verification.
 """
 
-import base64
-import hashlib
-import hmac
-import json
 import time
 import uuid
 
+import jwt
 from fastapi.testclient import TestClient
 
 from app.config import get_settings
@@ -29,15 +26,24 @@ def _make_auth_token(
     auth_uid: str | None = None,
     confirmed: bool = True,
 ) -> str:
-    """Helper to generate a valid test JWT with specified confirmation status."""
+    """Helper to generate a valid test JWT using PyJWT."""
     settings = get_settings()
     uid = auth_uid or str(uuid.uuid4())
-    header = {"alg": "HS256", "typ": "JWT"}
     now = int(time.time())
+    token_issuer = (
+        settings.supabase_issuer
+        if settings.supabase_issuer
+        else (
+            f"{settings.supabase_url}/auth/v1"
+            if settings.supabase_url
+            else "http://localhost:54321/auth/v1"
+        )
+    )
     payload = {
         "sub": uid,
         "email": email,
         "aud": "authenticated",
+        "iss": token_issuer,
         "role": "authenticated",
         "iat": now,
         "exp": now + 3600,
@@ -45,17 +51,7 @@ def _make_auth_token(
     if confirmed:
         payload["email_confirmed_at"] = "2026-10-22T00:00:00Z"
 
-    def b64url(data: bytes) -> str:
-        return base64.urlsafe_b64encode(data).rstrip(b"=").decode("utf-8")
-
-    h_str = b64url(json.dumps(header, separators=(",", ":")).encode("utf-8"))
-    p_str = b64url(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
-    sig = hmac.new(
-        settings.supabase_jwt_secret.encode("utf-8"),
-        f"{h_str}.{p_str}".encode("utf-8"),
-        hashlib.sha256,
-    ).digest()
-    return f"{h_str}.{p_str}.{b64url(sig)}"
+    return jwt.encode(payload, key=settings.supabase_jwt_secret, algorithm="HS256")
 
 
 def test_verify_community_anonymous_returns_401() -> None:
@@ -101,11 +97,13 @@ def test_wrong_domain_rejected_without_code() -> None:
 
 
 def test_valid_join_code_verified() -> None:
+    settings = get_settings()
+    test_code = settings.seed_join_code or "LOOP-DEMO-2026"
     token = _make_auth_token("user@gmail.com", confirmed=True)
     response = client.post(
         "/api/v1/auth/verify-community",
         headers={"Authorization": f"Bearer {token}"},
-        json={"method": "join_code", "join_code": "LOOP-DEMO-2026"},
+        json={"method": "join_code", "join_code": test_code},
     )
     assert response.status_code == 200
     data = response.json()
@@ -127,6 +125,8 @@ def test_invalid_join_code_rejected() -> None:
 
 def test_join_code_rate_limited_after_5_failures() -> None:
     """Roadmap Acceptance Check: 5 failed attempts trigger HTTP 429 Too Many Requests."""
+    settings = get_settings()
+    test_code = settings.seed_join_code or "LOOP-DEMO-2026"
     user_uid = str(uuid.uuid4())
     token = _make_auth_token("user@gmail.com", auth_uid=user_uid, confirmed=True)
 
@@ -146,7 +146,7 @@ def test_join_code_rate_limited_after_5_failures() -> None:
     blocked_res = client.post(
         "/api/v1/auth/verify-community",
         headers={"Authorization": f"Bearer {token}"},
-        json={"method": "join_code", "join_code": "LOOP-DEMO-2026"},
+        json={"method": "join_code", "join_code": test_code},
     )
     assert blocked_res.status_code == 429
     assert "too many" in blocked_res.json()["detail"].lower()

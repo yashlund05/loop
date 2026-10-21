@@ -2,8 +2,9 @@
 """Authentication and community verification business logic."""
 
 import hashlib
+import hmac
 import uuid
-from typing import Any, cast
+from typing import Any, Optional, cast
 
 import httpx
 from fastapi import HTTPException, status
@@ -32,12 +33,16 @@ class AuthService:
     def __init__(self) -> None:
         self.settings = get_settings()
 
+    def hash_join_code(self, code: str) -> str:
+        """Hash a join code using HMAC-SHA256 with server-side pepper."""
+        pepper = self.settings.join_code_pepper.encode("utf-8")
+        return hmac.new(pepper, code.strip().encode("utf-8"), hashlib.sha256).hexdigest()
+
     async def register(
         self, request: RegisterRequest, db: AsyncSession | None = None
     ) -> AuthResponse:
         """Register a new user with Supabase Auth and initialize local profile."""
         if not self.settings.supabase_url:
-            # Standalone / mock dev response
             synthetic_uid = uuid.uuid4()
             user_response = AuthUserResponse(
                 id=uuid.uuid4(),
@@ -181,13 +186,15 @@ class AuthService:
         self,
         current_user: AuthenticatedUser,
         request: VerifyCommunityRequest,
+        client_ip: Optional[str] = None,
         db: AsyncSession | None = None,
     ) -> VerifyCommunityResponse:
         """Verify user's college community membership.
 
         Security Invariants:
         1. Email domain verification requires a CONFIRMED email address (never trust unconfirmed).
-        2. Join code verification is rate limited (max 5 failures per hour per user).
+        2. Join code verification is rate limited per-user and per-IP (max 5 failures per hour).
+        3. Join code comparison uses HMAC-SHA256 with server-side pepper and constant-time compare.
         """
         community_id = DEFAULT_COLLEGE_ID
         community_name = DEFAULT_COLLEGE_NAME
@@ -214,7 +221,6 @@ class AuthService:
                     ),
                 )
 
-            # Verification successful via email domain
             if db is not None:
                 await self._persist_verification(current_user.auth_uid, community_id, db)
 
@@ -228,36 +234,33 @@ class AuthService:
         elif request.method == "join_code":
             user_key = str(current_user.auth_uid)
 
-            # Invariant 2: Rate limit join code attempts
-            if join_code_rate_limiter.is_rate_limited(user_key):
+            # Invariant 2: Rate limit per-user and per-IP
+            if join_code_rate_limiter.is_rate_limited(user_key, client_ip=client_ip):
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail="Too many failed join code attempts. Please try again in an hour.",
                 )
 
             if not request.join_code:
-                join_code_rate_limiter.record_failure(user_key)
+                join_code_rate_limiter.record_failure(user_key, client_ip=client_ip)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Join code is required",
                 )
 
-            submitted_code_hash = hashlib.sha256(
-                request.join_code.strip().encode("utf-8")
-            ).hexdigest()
-            expected_code_hash = hashlib.sha256(
-                self.settings.seed_join_code.strip().encode("utf-8")
-            ).hexdigest()
+            # Invariant 3: HMAC-SHA256 with pepper & constant-time compare
+            submitted_code_hash = self.hash_join_code(request.join_code)
+            expected_code_hash = self.hash_join_code(self.settings.seed_join_code)
 
-            if submitted_code_hash != expected_code_hash:
-                join_code_rate_limiter.record_failure(user_key)
+            if not hmac.compare_digest(submitted_code_hash, expected_code_hash):
+                join_code_rate_limiter.record_failure(user_key, client_ip=client_ip)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid join code provided",
                 )
 
             # Success: reset failure counter
-            join_code_rate_limiter.reset(user_key)
+            join_code_rate_limiter.reset(user_key, client_ip=client_ip)
 
             if db is not None:
                 await self._persist_verification(current_user.auth_uid, community_id, db)
@@ -282,7 +285,6 @@ class AuthService:
         user = result.scalar_one_or_none()
         if user:
             user.is_verified = True
-            # Add membership if not present
             membership_check = await db.execute(
                 select(Membership).where(
                     Membership.user_id == user.id,

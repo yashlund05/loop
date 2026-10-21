@@ -3,7 +3,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 
 from app.dependencies.auth import AuthenticatedUser, get_current_user
 from app.schemas.auth import (
@@ -53,6 +53,8 @@ async def refresh(request: RefreshTokenRequest) -> dict[str, Any]:
 )
 async def verify_community(
     request: VerifyCommunityRequest,
+    http_request: Request,
     current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> VerifyCommunityResponse:
-    return await auth_service.verify_community(current_user, request)
+    client_ip = http_request.client.host if http_request.client else None
+    return await auth_service.verify_community(current_user, request, client_ip=client_ip)
