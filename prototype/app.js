@@ -269,6 +269,218 @@
   }
 
   // ==========================================
+  // Simulated Backend Datastore & Mail Outbox (apps/api)
+  // ==========================================
+  const backendStore = {
+    users: [
+      {
+        id: "usr_1001",
+        email: "aarav.s@adypu.edu.in",
+        role: "Student Trader",
+        domain: "adypu.edu.in",
+        status: "Active (Verified)",
+        createdAt: "2026-10-20 09:30 AM",
+      },
+      {
+        id: "usr_1002",
+        email: "priya.m@adypu.edu.in",
+        role: "Student Trader",
+        domain: "adypu.edu.in",
+        status: "Active (Verified)",
+        createdAt: "2026-10-21 11:15 AM",
+      },
+      {
+        id: "usr_1003",
+        email: "rohan.k@adypu.edu.in",
+        role: "Student Trader",
+        domain: "adypu.edu.in",
+        status: "Active (Verified)",
+        createdAt: "2026-10-21 02:45 PM",
+      },
+      {
+        id: "usr_1004",
+        email: "admin.moderator@adypu.edu.in",
+        role: "Campus Moderator",
+        domain: "adypu.edu.in",
+        status: "Active (Staff)",
+        createdAt: "2026-10-18 10:00 AM",
+      },
+    ],
+    mails: [
+      {
+        id: "msg_801",
+        time: "10:14 AM",
+        recipient: "priya.m@adypu.edu.in",
+        subject: "[LOOP] Handover Verification OTP: 7492",
+        type: "Handover OTP",
+        status: "DELIVERED (SES)",
+        body: `
+          <div style="font-family: sans-serif; line-height: 1.5;">
+            <h3 style="color: #059669; margin-top: 0;">Safe Handover Protocol Initiated</h3>
+            <p>Hi Priya,</p>
+            <p>Your buyer (Aarav) has arrived at the meetup location: <strong>Central Library Cafe Quad</strong>.</p>
+            <div style="background: #f1f5f9; padding: 14px; border-radius: 8px; text-align: center; margin: 16px 0;">
+              <span style="font-size: 0.8rem; color: #64748b;">Verification OTP</span><br>
+              <strong style="font-size: 1.8rem; letter-spacing: 4px; color: #0f172a;">7 4 9 2</strong>
+            </div>
+            <p style="font-size: 0.82rem; color: #64748b;">Never share advance money off-platform. Complete handover confirmation inside the app.</p>
+          </div>
+        `,
+      },
+      {
+        id: "msg_802",
+        time: "09:45 AM",
+        recipient: "aarav.s@adypu.edu.in",
+        subject: "[LOOP] Welcome to Campus Marketplace",
+        type: "Welcome / Onboarding",
+        status: "DELIVERED (SES)",
+        body: `
+          <div style="font-family: sans-serif; line-height: 1.5;">
+            <h3 style="color: #059669; margin-top: 0;">Welcome to LOOP ADYPU</h3>
+            <p>Hi Aarav,</p>
+            <p>Your account is linked to the <strong>ADYPU Campus Community</strong>. You can now list pre-owned items, join circular swaps, and browse textbook/electronics deals.</p>
+            <p>Campus trust rules apply: Coarse location only, strict meetup verification, and no off-platform prepayments.</p>
+          </div>
+        `,
+      },
+      {
+        id: "msg_803",
+        time: "Yesterday",
+        recipient: "rohan.k@adypu.edu.in",
+        subject: "[LOOP] Match Found in 3-Party Swap Cycle #14",
+        type: "Swap Notification",
+        status: "DELIVERED (SES)",
+        body: `
+          <div style="font-family: sans-serif; line-height: 1.5;">
+            <h3 style="color: #059669; margin-top: 0;">3-Party Exchange Cycle Solved!</h3>
+            <p>Hi Rohan,</p>
+            <p>The CP-SAT matching engine found a zero-cash exchange cycle for your wanted <em>Scientific Calculator</em>. You give <em>CLRS Algorithms</em> to Priya, and receive <em>Casio FX-991EX</em> from Aarav.</p>
+            <p>Open LOOP to confirm the trade cycle.</p>
+          </div>
+        `,
+      },
+    ],
+  };
+
+  function saveUserEmailToBackend(email, role = "Student Trader") {
+    if (!email) return;
+    const clean = email.trim();
+    const domain = clean.includes("@") ? clean.split("@")[1] : "campus.internal";
+    const existing = backendStore.users.find((u) => u.email.toLowerCase() === clean.toLowerCase());
+    if (existing) {
+      existing.status = "Active (Verified)";
+      existing.createdAt = "Just now";
+    } else {
+      backendStore.users.unshift({
+        id: "usr_" + Math.floor(1000 + Math.random() * 9000),
+        email: clean,
+        role: role,
+        domain: domain,
+        status: domain === "adypu.edu.in" ? "Active (Verified)" : "Active (Student)",
+        createdAt: "Just now",
+      });
+    }
+    renderBackendTables();
+  }
+
+  function sendOutboxMailToBackend(recipient, subject, type, bodyHtml) {
+    if (!recipient) return;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const newMail = {
+      id: "msg_" + Math.floor(100 + Math.random() * 900),
+      time: timeStr,
+      recipient: recipient.trim(),
+      subject: subject,
+      type: type,
+      status: "DELIVERED (SES)",
+      body: bodyHtml,
+    };
+    backendStore.mails.unshift(newMail);
+    renderBackendTables();
+    return newMail;
+  }
+
+  function renderBackendTables() {
+    const mailsTbody = document.getElementById("backend-mails-tbody");
+    const usersTbody = document.getElementById("backend-users-tbody");
+    const mailCountBadge = document.getElementById("admin-mail-count");
+    const userCountBadge = document.getElementById("admin-user-count");
+    const headerMailCount = document.getElementById("header-mail-count");
+
+    if (mailCountBadge) mailCountBadge.textContent = backendStore.mails.length;
+    if (headerMailCount) headerMailCount.textContent = backendStore.mails.length;
+    if (userCountBadge) userCountBadge.textContent = backendStore.users.length;
+
+    if (mailsTbody) {
+      mailsTbody.innerHTML = backendStore.mails
+        .map(
+          (m) => `
+          <tr>
+            <td>${m.time}</td>
+            <td><strong>${m.recipient}</strong></td>
+            <td>${m.subject} <span class="fair-badge fair" style="font-size: 0.72rem; margin-left: 4px;">${m.type}</span></td>
+            <td><span class="fair-badge great">${m.status}</span></td>
+            <td>
+              <button type="button" class="btn btn-secondary btn-sm btn-view-mail-payload" data-mail-id="${m.id}">View Payload</button>
+            </td>
+          </tr>
+        `
+        )
+        .join("");
+
+      // Wire View Payload buttons
+      mailsTbody.querySelectorAll(".btn-view-mail-payload").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const mailId = btn.getAttribute("data-mail-id");
+          const found = backendStore.mails.find((x) => x.id === mailId);
+          if (found) {
+            openEmailPreviewModal(found);
+          }
+        });
+      });
+    }
+
+    if (usersTbody) {
+      usersTbody.innerHTML = backendStore.users
+        .map(
+          (u) => `
+          <tr>
+            <td><code>${u.id}</code></td>
+            <td><strong>${u.email}</strong></td>
+            <td>${u.domain}</td>
+            <td><span class="fair-badge fair">${u.role}</span> <span class="fair-badge ${
+              u.status.includes("Verified") ? "great" : "fair"
+            }">${u.status}</span></td>
+            <td>${u.createdAt}</td>
+          </tr>
+        `
+        )
+        .join("");
+    }
+  }
+
+  function openEmailPreviewModal(mail) {
+    const modal = document.getElementById("email-preview-modal");
+    const subj = document.getElementById("email-modal-subject");
+    const to = document.getElementById("email-modal-to");
+    const time = document.getElementById("email-modal-time");
+    const body = document.getElementById("email-modal-body");
+
+    if (subj) subj.textContent = mail.subject;
+    if (to) to.innerHTML = `<strong>${mail.recipient}</strong>`;
+    if (time) time.innerHTML = `${mail.time} &bull; Status: <strong>${mail.status}</strong>`;
+    if (body) body.innerHTML = mail.body;
+
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  function closeEmailPreviewModal() {
+    const modal = document.getElementById("email-preview-modal");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  // ==========================================
   // Screen 1: Overview
   // ==========================================
   function initOverviewScreen() {
@@ -1781,7 +1993,71 @@
   // Screen 10: Admin & Model Health
   // ==========================================
   function initAdminScreen() {
-    // Model health telemetry
+    renderBackendTables();
+
+    // Tab switching between Mails and Users
+    const tabMails = document.getElementById("btn-tab-backend-mails");
+    const tabUsers = document.getElementById("btn-tab-backend-users");
+    const viewMails = document.getElementById("view-backend-mails");
+    const viewUsers = document.getElementById("view-backend-users");
+
+    if (tabMails && tabUsers && viewMails && viewUsers) {
+      tabMails.addEventListener("click", () => {
+        tabMails.classList.add("active");
+        tabUsers.classList.remove("active");
+        viewMails.style.display = "block";
+        viewUsers.style.display = "none";
+      });
+
+      tabUsers.addEventListener("click", () => {
+        tabUsers.classList.add("active");
+        tabMails.classList.remove("active");
+        viewMails.style.display = "none";
+        viewUsers.style.display = "block";
+      });
+    }
+
+    // Quick Test Email button
+    const btnPing = document.getElementById("btn-backend-quick-ping");
+    if (btnPing) {
+      btnPing.addEventListener("click", () => {
+        sendOutboxMailToBackend(
+          "student.demo@adypu.edu.in",
+          "[LOOP Test] Live Backend SMTP Delivery Test",
+          "Test Ping",
+          `<div style="font-family: sans-serif; line-height: 1.5;">
+            <h3 style="color: #059669; margin-top: 0;">Backend Mail Dispatch Successful</h3>
+            <p>This email proves that transactional notifications, password reset links, and community verification tokens are correctly logged and queued in the backend outbox.</p>
+            <p style="font-size: 0.8rem; color: #64748b;">Protocol: Simulated SMTP / SES TLS 1.3 &bull; Latency: 42ms</p>
+          </div>`
+        );
+        showToast("Test email dispatched to backend outbox!");
+      });
+    }
+
+    // Modal Close buttons
+    const btnCloseModal = document.getElementById("btn-close-email-modal");
+    const btnModalDone = document.getElementById("btn-modal-done");
+    const modalBackdrop = document.getElementById("email-preview-modal");
+
+    if (btnCloseModal) btnCloseModal.addEventListener("click", closeEmailPreviewModal);
+    if (btnModalDone) btnModalDone.addEventListener("click", closeEmailPreviewModal);
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener("click", (e) => {
+        if (e.target === modalBackdrop) closeEmailPreviewModal();
+      });
+    }
+
+    // Header Backend Button
+    const headerBackendBtn = document.getElementById("header-backend-btn");
+    if (headerBackendBtn) {
+      headerBackendBtn.addEventListener("click", () => {
+        navigateTo("admin");
+        const sec = document.getElementById("admin-backend-section");
+        if (sec) sec.scrollIntoView({ behavior: "smooth" });
+        showToast("Inspecting live Backend Datastore & Mail Outbox");
+      });
+    }
   }
 
   // ==========================================
@@ -2067,11 +2343,30 @@
     const forgotNotice = document.getElementById("forgot-password-notice");
     if (btnForgotPassword && forgotNotice) {
       btnForgotPassword.addEventListener("click", () => {
-        const emailVal = document.getElementById("login-email").value.trim();
-        forgotNotice.textContent = `✓ Simulated reset link sent${
-          emailVal ? " to " + emailVal : ""
-        }. Check your inbox.`;
+        const emailVal =
+          document.getElementById("login-email").value.trim() || "student@adypu.edu.in";
+        forgotNotice.textContent = `✓ Simulated reset link sent to ${emailVal}. Check your inbox.`;
         forgotNotice.classList.add("visible");
+
+        saveUserEmailToBackend(emailVal, "Password Recovery");
+        sendOutboxMailToBackend(
+          emailVal,
+          "[LOOP Security] Reset Your Password",
+          "Password Reset",
+          `<div style="font-family: sans-serif; line-height: 1.5;">
+            <h3 style="color: #059669; margin-top: 0;">Password Reset Request</h3>
+            <p>Hi,</p>
+            <p>A password reset was requested for your LOOP account associated with <strong>${emailVal}</strong>.</p>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin: 16px 0; word-break: break-all;">
+              <span style="font-size: 0.78rem; color: #64748b;">Security Reset Token Link:</span><br>
+              <code style="color: #0284c7; font-size: 0.85rem;">https://loop.campus.internal/auth/reset?token=tok_sec_${Date.now().toString(
+                36
+              )}</code>
+            </div>
+            <p style="font-size: 0.8rem; color: #64748b;">If you did not request this, please disregard this email. The link expires in 15 minutes.</p>
+          </div>`
+        );
+        showToast(`Password reset link saved to backend outbox for ${emailVal}`);
       });
     }
 
@@ -2133,6 +2428,31 @@
 
         if (isValid) {
           authFlow.pendingIdentifier = maskEmail(email);
+          const isNew = authFlow.mode === "create";
+          saveUserEmailToBackend(email, isNew ? "Student Trader (New)" : "Student Trader");
+
+          if (isNew) {
+            sendOutboxMailToBackend(
+              email,
+              "[LOOP] Welcome to Campus Marketplace & Verify Account",
+              "Account Verification",
+              `<div style="font-family: sans-serif; line-height: 1.5;">
+                <h3 style="color: #059669; margin-top: 0;">Welcome to LOOP, ${email}!</h3>
+                <p>Your campus trading account has been registered on the <strong>ADYPU Campus Network</strong>.</p>
+                <p>To finish setting up your verified trust badge, please confirm your college email below:</p>
+                <div style="margin: 18px 0;">
+                  <span style="background: #059669; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">Verify College Email</span>
+                </div>
+                <p style="font-size: 0.8rem; color: #64748b;">Token: <code>sec_usr_${Date.now().toString(
+                  36
+                )}</code> &bull; Valid for 24 hours</p>
+              </div>`
+            );
+            showToast("Account saved to backend! Verification email queued in outbox.");
+          } else {
+            showToast("Signed in! Email registered in backend store.");
+          }
+
           showAuthStep("community");
         }
       });

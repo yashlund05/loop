@@ -261,6 +261,10 @@
           Sign out
         </button>
 
+        <button type="button" class="btn btn-secondary btn-sm" id="header-backend-btn" title="Inspect Backend Datastore & Transactional Mail Outbox" style="display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">
+          <span>📬</span> Backend &amp; Mails (<span id="header-mail-count">3</span>)
+        </button>
+
         <button class="btn-corrections" id="header-corrections-btn" title="View Active Learning corrections buffer">
           <span class="label-text">Corrections Buffer:</span>
           <span class="counter-badge" id="nav-corrections-count">42</span>
@@ -1470,6 +1474,8 @@
             </div>
           </div>
         </div>
+
+        </div>
       </section>
 
       <!-- ============================================================== -->
@@ -1896,6 +1902,67 @@
             </div>
           </div>
         </div>
+
+        <!-- Section: Backend Database & Transactional Email Outbox -->
+        <div class="card" id="admin-backend-section" style="margin-top: 24px;">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>Backend Datastore &amp; Transactional Mail Outbox</span>
+              <span class="badge-algo">PostgreSQL + SMTP / SES</span>
+            </h3>
+            <span class="badge-algo">apps/api Telemetry</span>
+          </div>
+
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 14px; line-height: 1.4;">
+            Simulated <code>apps/api</code> persistence and mail service. Inspect live registered student accounts, password reset tokens, and outgoing campus verification emails triggered during your session.
+          </p>
+
+          <!-- Tab Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="backend-tab-btn active" id="btn-tab-backend-mails">📬 Mail Outbox (<span id="admin-mail-count">3</span>)</button>
+              <button type="button" class="backend-tab-btn" id="btn-tab-backend-users">👥 Registered Users (<span id="admin-user-count">4</span>)</button>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-backend-quick-ping" title="Send a test verification email">+ Send Test Email</button>
+            </div>
+          </div>
+
+          <!-- Mails Table View -->
+          <div id="view-backend-mails" style="overflow-x: auto;">
+            <table class="audit-table">
+              <thead>
+                <tr>
+                  <th>Dispatch Time</th>
+                  <th>Recipient Email</th>
+                  <th>Subject &amp; Template</th>
+                  <th>Delivery Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="backend-mails-tbody">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Users Table View -->
+          <div id="view-backend-users" style="overflow-x: auto; display: none;">
+            <table class="audit-table">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Email / Identifier</th>
+                  <th>Campus Domain</th>
+                  <th>Role &amp; Status</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody id="backend-users-tbody">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
       </section>
 
     </main>
@@ -1903,5 +1970,34 @@
   </div> <!-- /#dashboard-view -->
 
   <script src="app.js"></script>
+  <!-- Transactional Email Preview Modal -->
+  <div id="email-preview-modal" class="email-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="email-modal-subject">
+    <div class="email-preview-card">
+      <div class="email-preview-header">
+        <div>
+          <span class="badge-algo" style="margin-bottom: 4px; display: inline-block;">Transactional SMTP / SES Mail Payload</span>
+          <h3 id="email-modal-subject" style="font-size: 1.05rem; font-weight: 700; margin: 4px 0 0;">Email Subject</h3>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-close-email-modal" aria-label="Close Email Preview">✕ Close</button>
+      </div>
+      <div class="email-preview-meta">
+        <div class="email-preview-meta-grid">
+          <span style="color: var(--color-text-muted);">From:</span>
+          <span><strong>LOOP Campus Security</strong> &lt;no-reply@campus.loop.internal&gt;</span>
+          <span style="color: var(--color-text-muted);">To:</span>
+          <span id="email-modal-to"><strong>user@adypu.edu.in</strong></span>
+          <span style="color: var(--color-text-muted);">Sent:</span>
+          <span id="email-modal-time">Just now &bull; Status: DELIVERED (250 OK)</span>
+        </div>
+      </div>
+      <div class="email-preview-body" id="email-modal-body">
+        <!-- Rendered email body content -->
+      </div>
+      <div style="padding: 12px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-bg); font-size: 0.75rem; color: var(--color-text-muted);">
+        <span>Simulated <code>apps/api</code> Email Dispatcher</span>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-modal-done">Done</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
