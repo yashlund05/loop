@@ -63,3 +63,8 @@ supabase/.temp/
 Thumbs.db
 .vscode/
 .idea/
+
+# Prototype demo images & raw assets (demo only, untracked per Review 1 spec)
+raw_images/
+prototype/assets/images/
+prototype/images/
