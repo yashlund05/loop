@@ -664,376 +664,57 @@
     const resultsContainer = document.getElementById("discover-results-container");
     const queryExplanation = document.getElementById("discover-query-explanation");
 
-    // Simulated database of 30 rich campus listings representing the 1,248 catalog
-    const mockListings = [
-      // FURNITURE (10 items)
-      {
-        id: "desk-1",
-        title: "Ergonomic Wooden Study Desk with Drawer",
-        category: "furniture",
-        tags: ["study table", "desk", "mez", "furniture", "drawer"],
-        price: 2600,
-        distance: "0.4 km • Hostel Block B",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "table",
-      },
-      {
-        id: "desk-2",
-        title: "Compact Foldable Study Table",
-        category: "furniture",
-        tags: ["study table", "desk", "mez", "foldable", "table"],
-        price: 1450,
-        distance: "0.6 km • Hostel Block C",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "table",
-      },
-      {
-        id: "desk-3",
-        title: "Solid Teak Wood Executive Desk",
-        category: "furniture",
-        tags: ["study table", "desk", "mez", "teak", "executive"],
-        price: 3800,
-        distance: "1.2 km • Faculty Quarters",
-        condition: "Fair",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "table",
-      },
-      {
-        id: "desk-4",
-        title: "Minimalist White Frame Study Desk",
-        category: "furniture",
-        tags: ["study table", "desk", "mez", "white", "minimalist"],
-        price: 1950,
-        distance: "0.3 km • Hostel Block A",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "table",
-      },
-      {
-        id: "chair-1",
-        title: "Ergonomic High-Back Mesh Study Chair",
-        category: "furniture",
-        tags: ["chair", "ergonomic", "mesh", "furniture", "study"],
-        price: 2200,
-        distance: "0.5 km • Hostel Block B",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "chair",
-      },
-      {
-        id: "chair-2",
-        title: "Godrej Fabric Study Chair with Wheels",
-        category: "furniture",
-        tags: ["chair", "study", "wheels", "godrej", "furniture"],
-        price: 1250,
-        distance: "0.8 km • Society Tower 2",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "chair",
-      },
-      {
-        id: "lamp-1",
-        title: "Philips EyeCare Rechargeable LED Desk Lamp",
-        category: "furniture",
-        tags: ["lamp", "led", "light", "study", "philips", "furniture"],
-        price: 650,
-        distance: "0.2 km • Hostel Block C",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "lamp",
-      },
-      {
-        id: "shelf-1",
-        title: "3-Tier Modular Wooden Bookcase & Shelf",
-        category: "furniture",
-        tags: ["bookshelf", "shelf", "storage", "rack", "furniture"],
-        price: 1100,
-        distance: "0.9 km • Faculty Enclave",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "table",
-      },
-      {
-        id: "chair-3",
-        title: "Lounge Bean Bag with Premium Filler",
-        category: "furniture",
-        tags: ["beanbag", "lounge", "chair", "furniture"],
-        price: 850,
-        distance: "0.7 km • Hostel Block D",
-        condition: "Fair",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "chair",
-      },
-      {
-        id: "lamp-2",
-        title: "Wipro Smart LED Study Lamp with Touch Dimmer",
-        category: "furniture",
-        tags: ["lamp", "wipro", "smart", "led", "furniture"],
-        price: 900,
-        distance: "0.4 km • Hostel Block A",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "lamp",
-      },
+    // Simulated database of campus listings (loaded from prototype/data/catalogue.js)
+    const mockListings =
+      window.LOOP_CATALOGUE && window.LOOP_CATALOGUE.length > 0
+        ? window.LOOP_CATALOGUE
+        : [
+            {
+              id: "item-01",
+              title: "GTRACING Ergonomic High-Back Gaming Chair (Red & Black)",
+              category: "Furniture",
+              subtype: "Study & Gaming Chairs",
+              brand: "GTRACING",
+              price: 4200,
+              condition: "Good",
+              ageYears: 1.2,
+              areaName: "Lohegaon",
+              distanceKm: 0.6,
+              postedDaysAgo: 2,
+              description: "Comfortable ergonomic racing chair.",
+              sellerAlias: "Seller 14",
+              aiPriceRange: { low: 3800, likely: 4500, high: 5200 },
+              aiReasons: [
+                "+12% premium for branded GTRACING steel frame",
+                "-8% condition adjustment for armrest edge scuff",
+                "High campus velocity in ADYPU hostel cluster",
+              ],
+              aiConfidence: 0.92,
+              images: ["item-01.jpg"],
+              wearHotspots: [{ x: "18%", y: "48%", r: "8%" }],
+              badge: "Fair Price",
+              badgeType: "fair",
+              svgType: "chair",
+            },
+          ];
 
-      // ELECTRONICS (10 items)
-      {
-        id: "calc-1",
-        title: "Casio FX-991EX ClassWiz Scientific Calculator",
-        category: "electronics",
-        tags: ["calculator", "scientific", "casio", "classwiz", "maths"],
-        price: 1100,
-        distance: "0.5 km • Engineering Dept",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "calc",
-      },
-      {
-        id: "calc-2",
-        title: "Texas Instruments TI-84 Plus Graphic Calculator",
-        category: "electronics",
-        tags: ["calculator", "scientific", "graphing", "ti84", "electronics"],
-        price: 3400,
-        distance: "0.7 km • Science Block",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "calc",
-      },
-      {
-        id: "calc-3",
-        title: "Casio FX-82MS 2nd Gen Scientific Calculator",
-        category: "electronics",
-        tags: ["calculator", "scientific", "casio", "basic", "maths"],
-        price: 550,
-        distance: "0.3 km • Hostel Block B",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "calc",
-      },
-      {
-        id: "monitor-1",
-        title: "Dell 24-inch Full HD Borderless IPS Monitor",
-        category: "electronics",
-        tags: ["monitor", "screen", "dell", "display", "electronics"],
-        price: 4800,
-        distance: "0.6 km • Hostel Block C",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "laptop",
-      },
-      {
-        id: "audio-1",
-        title: "Sony WH-1000XM4 Noise Cancelling Headphones",
-        category: "electronics",
-        tags: ["headphones", "sony", "wireless", "audio", "electronics"],
-        price: 9500,
-        distance: "1.1 km • Society Tower 1",
-        condition: "Like New",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "headphones",
-      },
-      {
-        id: "audio-2",
-        title: "boAt Rockerz 450 Bluetooth On-Ear Headphones",
-        category: "electronics",
-        tags: ["headphones", "boat", "bluetooth", "audio", "electronics"],
-        price: 800,
-        distance: "0.4 km • Hostel Block A",
-        condition: "Good",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "headphones",
-      },
-      {
-        id: "laptop-1",
-        title: "Lenovo ThinkPad L14 Gen 2 (Ryzen 5 / 16GB / 512GB)",
-        category: "electronics",
-        tags: ["laptop", "thinkpad", "lenovo", "computer", "electronics"],
-        price: 26500,
-        distance: "0.8 km • Tech Hub",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "laptop",
-      },
-      {
-        id: "mouse-1",
-        title: "Logitech MX Master 2S Wireless Ergonomic Mouse",
-        category: "electronics",
-        tags: ["mouse", "logitech", "wireless", "ergonomic", "electronics"],
-        price: 2400,
-        distance: "0.3 km • Library Block",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "laptop",
-      },
-      {
-        id: "kettle-1",
-        title: "Prestige 1.5L Stainless Steel Electric Kettle",
-        category: "electronics",
-        tags: ["kettle", "electric", "hostel", "appliance", "electronics"],
-        price: 550,
-        distance: "0.2 km • Hostel Block B",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "lamp",
-      },
-      {
-        id: "power-1",
-        title: "Mi 20000mAh 18W Fast Charging Power Bank",
-        category: "electronics",
-        tags: ["powerbank", "battery", "charger", "mi", "electronics"],
-        price: 950,
-        distance: "0.5 km • Hostel Block C",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "calc",
-      },
+    function renderItemThumbnail(item) {
+      if (item.images && item.images.length > 0) {
+        const imgName = item.images[0];
+        const src = imgName.startsWith("images/") ? imgName : "images/" + imgName;
+        return `<img src="${src}" alt="${item.title}" class="item-thumb-img" onerror="this.onerror=null;this.src='${imgName}';">`;
+      }
+      return getThumbSvg(item.svgType || getFallbackSvgType(item.category));
+    }
 
-      // BOOKS (6 items)
-      {
-        id: "book-1",
-        title: "Introduction to Algorithms (CLRS 3rd Edition)",
-        category: "books",
-        tags: ["clrs", "algorithms", "book", "computer science", "cormen"],
-        price: 950,
-        distance: "0.2 km • Library Quad",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "book",
-      },
-      {
-        id: "book-2",
-        title: "Thomas' Calculus Early Transcendentals (14th Ed)",
-        category: "books",
-        tags: ["calculus", "math", "mathematics", "thomas", "book"],
-        price: 750,
-        distance: "0.4 km • Maths Dept",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "book",
-      },
-      {
-        id: "book-3",
-        title: "Resnick Halliday & Walker Fundamentals of Physics",
-        category: "books",
-        tags: ["physics", "halliday", "resnick", "textbook", "book"],
-        price: 850,
-        distance: "0.3 km • Science Block",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "book",
-      },
-      {
-        id: "book-4",
-        title: "Computer Networks by Andrew Tanenbaum (5th Ed)",
-        category: "books",
-        tags: ["networking", "networks", "tanenbaum", "cs", "book"],
-        price: 600,
-        distance: "0.5 km • Hostel Block D",
-        condition: "Good",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "book",
-      },
-      {
-        id: "book-5",
-        title: "Higher Engineering Mathematics by B.S. Grewal",
-        category: "books",
-        tags: ["engineering", "mathematics", "grewal", "textbook", "book"],
-        price: 500,
-        distance: "0.6 km • Hostel Block A",
-        condition: "Fair",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "book",
-      },
-      {
-        id: "book-6",
-        title: "Clean Code: Agile Software Craftsmanship by Robert Martin",
-        category: "books",
-        tags: ["clean code", "programming", "software", "book"],
-        price: 650,
-        distance: "0.3 km • Library Block",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "book",
-      },
-
-      // HOBBIES & SPORTS (4 items)
-      {
-        id: "cycle-1",
-        title: "Hero Sprint 26T Campus Bicycle",
-        category: "hobbies",
-        tags: ["cycle", "bicycle", "campus", "bike", "sprint"],
-        price: 3200,
-        distance: "0.8 km • Sports Complex",
-        condition: "Fair",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "cycle",
-      },
-      {
-        id: "cycle-2",
-        title: "Firefox Target 21-Speed Alloy Mountain Bike",
-        category: "hobbies",
-        tags: ["cycle", "bicycle", "firefox", "gear", "mtb"],
-        price: 6800,
-        distance: "1.0 km • South Gate",
-        condition: "Good",
-        badge: "Fair Price",
-        badgeType: "fair",
-        svgType: "cycle",
-      },
-      {
-        id: "draw-1",
-        title: "Omega Engineering Mini Drafter & Drawing Board A2",
-        category: "hobbies",
-        tags: ["engineering", "drawing board", "drafter", "graphics", "architecture"],
-        price: 850,
-        distance: "0.5 km • Architecture Dept",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "table",
-      },
-      {
-        id: "lab-1",
-        title: "Unisex Cotton Lab Coat & Safety Goggles (Size L)",
-        category: "hobbies",
-        tags: ["lab coat", "chemistry", "aprons", "safety", "medical"],
-        price: 350,
-        distance: "0.3 km • Chemistry Block",
-        condition: "Like New",
-        badge: "Great Deal",
-        badgeType: "great",
-        svgType: "lab",
-      },
-    ];
+    function getFallbackSvgType(cat) {
+      const c = (cat || "").toLowerCase();
+      if (c.includes("furniture")) return "table";
+      if (c.includes("electronic")) return "calc";
+      if (c.includes("book")) return "book";
+      if (c.includes("hobbi") || c.includes("sport")) return "cycle";
+      return "table";
+    }
 
     function getThumbSvg(type) {
       if (type === "table") {
@@ -1173,10 +854,22 @@
 
       // Pre-filter catalog pool by structured chip dimensions
       let pool = mockListings.filter((item) => {
-        const catMatch = selectedCat === "all" || item.category === selectedCat;
+        const itemCat = (item.category || "").toLowerCase();
+        const selCat = selectedCat.toLowerCase();
+        const catMatch =
+          selectedCat === "all" ||
+          itemCat === selCat ||
+          itemCat.startsWith(selCat) ||
+          (selCat === "hobbies" &&
+            (itemCat.includes("hobbies") ||
+              itemCat.includes("recreation") ||
+              itemCat.includes("sport")));
+
         const condMatch =
           selectedCond === "all" || item.condition.toLowerCase() === selectedCond.toLowerCase();
-        const distNum = parseFloat(item.distance) || 0.5;
+
+        const distNum =
+          item.distanceKm !== undefined ? item.distanceKm : parseFloat(item.distance) || 0.5;
         const distMatch = maxDistance === Infinity || distNum <= maxDistance;
         const priceMatch = item.price <= effectiveCeiling;
         return catMatch && condMatch && distMatch && priceMatch;
@@ -1234,46 +927,95 @@
         }
         displayCards(filtered);
       } else {
-        // Semantic search behavior: understands Hinglish, maps "mez" -> "study desk / table"
+        // Semantic search behavior: understands Hinglish (mez -> furniture, kursi -> gaming chairs, kitab -> textbooks)
         let mappedConcept = coreQuery;
         let hinglishMatched = false;
+        let hinglishTerm = "";
         if (coreQuery.includes("mez")) {
-          mappedConcept = coreQuery.replace("mez", "study table/desk");
+          mappedConcept = coreQuery.replace("mez", "Study Desk / Furniture");
           hinglishMatched = true;
+          hinglishTerm = "mez";
+        } else if (coreQuery.includes("kursi")) {
+          mappedConcept = coreQuery.replace("kursi", "Ergonomic Chairs / Seating");
+          hinglishMatched = true;
+          hinglishTerm = "kursi";
+        } else if (coreQuery.includes("kitab") || coreQuery.includes("pustak")) {
+          mappedConcept = coreQuery.replace("kitab", "Textbooks").replace("pustak", "Textbooks");
+          hinglishMatched = true;
+          hinglishTerm = "kitab";
         }
 
         const filtered = pool.filter((item) => {
           if (!coreQuery) return true;
+          const itemCat = (item.category || "").toLowerCase();
 
-          // If searching table or mez
+          // Concept mappings
           if (
             coreQuery.includes("table") ||
             coreQuery.includes("desk") ||
             coreQuery.includes("mez")
           ) {
-            return item.category === "furniture";
+            return itemCat === "furniture";
+          }
+          if (coreQuery.includes("kursi") || coreQuery.includes("chair")) {
+            return itemCat === "furniture";
           }
           if (
+            coreQuery.includes("kitab") ||
+            coreQuery.includes("pustak") ||
+            coreQuery.includes("book") ||
             coreQuery.includes("clrs") ||
+            coreQuery.includes("calculus") ||
             coreQuery.includes("algorithm") ||
-            coreQuery.includes("book")
+            coreQuery.includes("tanenbaum") ||
+            coreQuery.includes("maths")
           ) {
-            return item.category === "books";
+            return itemCat === "books";
           }
-          if (coreQuery.includes("calc") || coreQuery.includes("casio")) {
-            return item.category === "electronics";
+          if (
+            coreQuery.includes("calc") ||
+            coreQuery.includes("casio") ||
+            coreQuery.includes("laptop") ||
+            coreQuery.includes("headphone") ||
+            coreQuery.includes("audio") ||
+            coreQuery.includes("ti-84")
+          ) {
+            return itemCat === "electronics";
           }
-          if (coreQuery.includes("cycle") || coreQuery.includes("bike")) {
-            return item.category === "hobbies";
+          if (
+            coreQuery.includes("cycle") ||
+            coreQuery.includes("bike") ||
+            coreQuery.includes("bat") ||
+            coreQuery.includes("cricket") ||
+            coreQuery.includes("badminton") ||
+            coreQuery.includes("racket") ||
+            coreQuery.includes("guitar") ||
+            coreQuery.includes("drafter") ||
+            coreQuery.includes("lab")
+          ) {
+            return (
+              itemCat.includes("hobbies") ||
+              itemCat.includes("recreation") ||
+              itemCat.includes("sport")
+            );
           }
+
           // General semantic match token fallback
           const tokens = coreQuery.split(/\s+/).filter(Boolean);
-          return tokens.some(
-            (t) =>
-              item.title.toLowerCase().includes(t) ||
-              item.tags.some((tag) => tag.includes(t)) ||
-              item.category.includes(t)
-          );
+          const searchCorpus = (
+            item.title +
+            " " +
+            (item.subtype || "") +
+            " " +
+            (item.brand || "") +
+            " " +
+            (item.tags || []).join(" ") +
+            " " +
+            (item.description || "") +
+            " " +
+            item.category
+          ).toLowerCase();
+          return tokens.some((t) => searchCorpus.includes(t));
         });
 
         if (queryExplanation) {
@@ -1328,7 +1070,7 @@
           item.id
         }" role="button" tabindex="0" aria-label="View AI price details for ${item.title}">
           <div class="item-thumbnail">
-            ${getThumbSvg(item.svgType)}
+            ${renderItemThumbnail(item)}
             <span style="position: absolute; top: 8px; right: 8px;" class="fair-badge ${
               item.badgeType
             }">${item.badge}</span>
@@ -1336,9 +1078,11 @@
           <div class="item-body">
             <div>
               <h4 class="item-title">${item.title}</h4>
-              <p class="item-meta">📍 ${item.distance} &bull; Condition: <strong>${
-                item.condition
-              }</strong></p>
+              <p class="item-meta">📍 ${
+                item.distanceKm
+                  ? item.distanceKm + " km • " + (item.areaName || "Campus")
+                  : item.distance || "0.5 km • Campus"
+              } &bull; Condition: <strong>${item.condition}</strong></p>
             </div>
             <div class="item-footer">
               <div class="item-price">₹${item.price.toLocaleString("en-IN")}</div>
@@ -1596,11 +1340,31 @@
 
     const photoEl = document.getElementById("modal-item-photo");
     if (photoEl) {
-      photoEl.innerHTML = `<svg viewBox="0 0 160 90" width="100%" height="100%">${
-        document.querySelector(`[data-listing-id="${item.id}"] .item-thumbnail svg`)
-          ? document.querySelector(`[data-listing-id="${item.id}"] .item-thumbnail svg`).innerHTML
-          : ""
-      }</svg>`;
+      if (item.images && item.images.length > 0) {
+        const imgName = item.images[0];
+        const src = imgName.startsWith("images/") ? imgName : "images/" + imgName;
+        const hotspotsHtml = (item.wearHotspots || [])
+          .map(
+            (h, i) => `
+          <div class="wear-hotspot-pin" style="left: ${h.x}; top: ${h.y}; width: ${h.r}; height: ${
+            h.r
+          };" title="Wear Hotspot ${i + 1}: Surface inspection zone">
+            <span class="wear-hotspot-pulse"></span>
+          </div>
+        `
+          )
+          .join("");
+        photoEl.innerHTML = `
+          <div class="modal-detail-img-wrap">
+            <img src="${src}" alt="${item.title}" class="modal-detail-img" onerror="this.onerror=null;this.src='${imgName}';">
+            ${hotspotsHtml}
+          </div>
+        `;
+      } else {
+        photoEl.innerHTML = `<div class="modal-detail-img-wrap">${getThumbSvg(
+          item.svgType || getFallbackSvgType(item.category)
+        )}</div>`;
+      }
     }
 
     const priceEl = document.getElementById("modal-item-price");
@@ -1616,84 +1380,120 @@
     if (condEl) condEl.textContent = `Condition: ${item.condition}`;
 
     const distEl = document.getElementById("modal-item-distance");
-    if (distEl) distEl.textContent = `📍 ${item.distance}`;
+    if (distEl) {
+      distEl.textContent = `📍 ${
+        item.distanceKm
+          ? item.distanceKm + " km • " + (item.areaName || "Campus")
+          : item.distance || "0.5 km • Campus"
+      }`;
+    }
 
     const catEl = document.getElementById("modal-item-category");
-    if (catEl)
-      catEl.textContent = `Category: ${
-        item.category.charAt(0).toUpperCase() + item.category.slice(1)
-      }`;
+    if (catEl) {
+      catEl.textContent = `Category: ${item.category} • ${item.subtype || "General"}`;
+    }
 
     // Conformal AI price interval calculation
-    const low = Math.max(100, Math.round((item.price * 0.84) / 50) * 50);
-    const high = Math.round((item.price * 1.16) / 50) * 50;
+    const low = item.aiPriceRange
+      ? item.aiPriceRange.low
+      : Math.max(100, Math.round((item.price * 0.84) / 50) * 50);
+    const median = item.aiPriceRange ? item.aiPriceRange.likely : item.price;
+    const high = item.aiPriceRange
+      ? item.aiPriceRange.high
+      : Math.round((item.price * 1.16) / 50) * 50;
 
     const rangeMinEl = document.getElementById("modal-range-min");
     if (rangeMinEl) rangeMinEl.textContent = `₹${low.toLocaleString("en-IN")}`;
 
     const rangeMedianEl = document.getElementById("modal-range-median");
-    if (rangeMedianEl) rangeMedianEl.textContent = `Median: ₹${item.price.toLocaleString("en-IN")}`;
+    if (rangeMedianEl) rangeMedianEl.textContent = `Median: ₹${median.toLocaleString("en-IN")}`;
 
     const rangeMaxEl = document.getElementById("modal-range-max");
     if (rangeMaxEl) rangeMaxEl.textContent = `₹${high.toLocaleString("en-IN")}`;
 
     const statusTextEl = document.getElementById("modal-conformal-status-text");
     if (statusTextEl) {
-      statusTextEl.textContent = `Listed price ₹${item.price.toLocaleString(
-        "en-IN"
-      )} satisfies 80% conformal coverage`;
+      if (item.badgeType === "great") {
+        statusTextEl.textContent = `Listed price ₹${item.price.toLocaleString(
+          "en-IN"
+        )} is below the conformal lower bound (₹${low.toLocaleString("en-IN")}) — Great Deal!`;
+      } else if (item.badgeType === "overpriced") {
+        statusTextEl.textContent = `Listed price ₹${item.price.toLocaleString(
+          "en-IN"
+        )} exceeds the 80% conformal upper bound (₹${high.toLocaleString("en-IN")}) by ₹${(
+          item.price - high
+        ).toLocaleString("en-IN")} — Overpriced`;
+      } else {
+        statusTextEl.textContent = `Listed price ₹${item.price.toLocaleString(
+          "en-IN"
+        )} satisfies 80% conformal coverage [₹${low.toLocaleString(
+          "en-IN"
+        )} — ₹${high.toLocaleString("en-IN")}]`;
+      }
     }
 
     // Set conformal bar pin & fill
     const fillEl = document.getElementById("modal-conformal-fill");
-    if (fillEl) {
-      fillEl.style.left = "15%";
-      fillEl.style.width = "70%";
-    }
     const pinEl = document.getElementById("modal-conformal-pin");
+    const minScale = Math.min(low, item.price) * 0.85;
+    const maxScale = Math.max(high, item.price) * 1.15;
+    const fillLeft = Math.max(
+      2,
+      Math.min(90, Math.round(((low - minScale) / (maxScale - minScale)) * 100))
+    );
+    const fillRight = Math.max(
+      10,
+      Math.min(98, Math.round(((high - minScale) / (maxScale - minScale)) * 100))
+    );
+    const pinPos = Math.max(
+      2,
+      Math.min(98, Math.round(((item.price - minScale) / (maxScale - minScale)) * 100))
+    );
+
+    if (fillEl) {
+      fillEl.style.left = fillLeft + "%";
+      fillEl.style.width = Math.max(8, fillRight - fillLeft) + "%";
+    }
     if (pinEl) {
-      pinEl.style.left = "50%";
+      pinEl.style.left = pinPos + "%";
     }
 
     // Populate SHAP / Explainable AI drivers
     const driversListEl = document.getElementById("modal-ai-drivers-list");
     if (driversListEl) {
-      const condAdjustment =
-        item.condition === "Like New"
-          ? "+14% premium for like-new condition with minimal cosmetic wear"
-          : item.condition === "Good"
-            ? "standard baseline price for functional student-owned equipment"
-            : "-16% condition discount for observable student hostel usage";
+      const icons = ["🔍", "📈", "📍"];
+      const reasons =
+        item.aiReasons && item.aiReasons.length > 0
+          ? item.aiReasons
+          : [
+              `Condition Assessment: Verified ${item.condition} student equipment.`,
+              `Campus Category Velocity: Active student demand in ${item.category}.`,
+              `Hyperlocal Proximity: Located at ${
+                item.areaName || "Campus"
+              } with zero shipping friction.`,
+            ];
+
+      const reasonsHtml = reasons
+        .map(
+          (reason, idx) => `
+        <div class="ai-driver-item">
+          <span class="ai-driver-icon" aria-hidden="true">${icons[idx % icons.length]}</span>
+          <div>${reason}</div>
+        </div>
+      `
+        )
+        .join("");
 
       driversListEl.innerHTML = `
-        <div class="ai-driver-item">
-          <span class="ai-driver-icon" aria-hidden="true">🔍</span>
-          <div>
-            <strong>Condition Assessment:</strong> ${condAdjustment} (verified via vision inspection).
-          </div>
-        </div>
-        <div class="ai-driver-item">
-          <span class="ai-driver-icon" aria-hidden="true">📈</span>
-          <div>
-            <strong>Campus Category Velocity:</strong> High student demand in <em>${
-              item.category
-            }</em> (average 3.4 days to exchange in ADYPU hostels).
-          </div>
-        </div>
-        <div class="ai-driver-item">
-          <span class="ai-driver-icon" aria-hidden="true">📍</span>
-          <div>
-            <strong>Hyperlocal Proximity:</strong> Located at <em>${
-              item.distance
-            }</em> with 0 shipping friction and safe campus library handover.
-          </div>
-        </div>
+        ${reasonsHtml}
         <div class="ai-driver-item">
           <span class="ai-driver-icon" aria-hidden="true">🛡️</span>
           <div>
-            <strong>Conformal Deal Calibration:</strong> Model calibrated on 1,248 campus transactions guarantees 80% coverage interval [₹${low.toLocaleString(
+            <strong>Conformal Deal Calibration:</strong> Model guarantees 80% coverage interval [₹${low.toLocaleString(
               "en-IN"
-            )} — ₹${high.toLocaleString("en-IN")}].
+            )} — ₹${high.toLocaleString("en-IN")}] with ${(
+              (item.aiConfidence || 0.92) * 100
+            ).toFixed(0)}% model confidence.
           </div>
         </div>
       `;
