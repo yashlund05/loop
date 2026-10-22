@@ -43,6 +43,9 @@
       query: "study table under 3000",
       mode: "semantic", // 'semantic' or 'fts'
       category: "all",
+      priceCeiling: Infinity,
+      condition: "all",
+      maxDistance: Infinity,
       displayCount: 12,
     },
 
@@ -180,6 +183,11 @@
   // Navigation controller
   function navigateTo(screenId) {
     closeEmailPreviewModal();
+    closeListingDetailModal();
+    if (window.LOOP && window.LOOP.closeDrawer) {
+      window.LOOP.closeDrawer();
+    }
+
     if (screenId === "login" || screenId === "signin") {
       setAuthGateVisible(true);
       window.location.hash = "login";
@@ -207,7 +215,7 @@
       }
     });
 
-    // Update mobile nav bar
+    // Update mobile nav bar if present
     document.querySelectorAll(".mobile-nav-bar .mobile-nav-btn").forEach((btn) => {
       if (btn.getAttribute("data-screen") === screenId) {
         btn.classList.add("active");
@@ -1124,16 +1132,21 @@
       const q = (state.search.query || "").trim().toLowerCase();
       const mode = state.search.mode;
       const selectedCat = state.search.category || "all";
+      const selectedPriceCeiling = state.search.priceCeiling || Infinity;
+      const selectedCond = state.search.condition || "all";
+      const maxDistance = state.search.maxDistance || Infinity;
       const catalogCounter = document.getElementById("discover-catalog-counter");
       const paginationStatus = document.getElementById("discover-pagination-status");
       const loadMoreBtn = document.getElementById("discover-load-more-btn");
+      const activeCountBadge = document.getElementById("filter-active-count-badge");
 
       // Extract price ceiling heuristic (e.g. "under 3000", "< 2500")
-      let ceiling = Infinity;
+      let queryCeiling = Infinity;
       const underMatch = q.match(/under\s*(\d+)/i) || q.match(/<\s*(\d+)/i);
       if (underMatch) {
-        ceiling = parseInt(underMatch[1], 10);
+        queryCeiling = parseInt(underMatch[1], 10);
       }
+      const effectiveCeiling = Math.min(queryCeiling, selectedPriceCeiling);
 
       // Clean query tokens
       let coreQuery = q
@@ -1141,29 +1154,55 @@
         .replace(/<\s*\d+/i, "")
         .trim();
 
-      // Category pre-filter
-      let pool = mockListings;
-      if (selectedCat !== "all") {
-        pool = mockListings.filter((item) => item.category === selectedCat);
+      // Update active filter badge counter
+      let activeFilterCount = 0;
+      if (selectedCat !== "all") activeFilterCount++;
+      if (selectedPriceCeiling !== Infinity) activeFilterCount++;
+      if (selectedCond !== "all") activeFilterCount++;
+      if (maxDistance !== Infinity) activeFilterCount++;
+
+      if (activeCountBadge) {
+        if (activeFilterCount === 0) {
+          activeCountBadge.textContent = "All Listings";
+        } else {
+          activeCountBadge.textContent = `${activeFilterCount} Filter${
+            activeFilterCount > 1 ? "s" : ""
+          } Active`;
+        }
       }
+
+      // Pre-filter catalog pool by structured chip dimensions
+      let pool = mockListings.filter((item) => {
+        const catMatch = selectedCat === "all" || item.category === selectedCat;
+        const condMatch =
+          selectedCond === "all" || item.condition.toLowerCase() === selectedCond.toLowerCase();
+        const distNum = parseFloat(item.distance) || 0.5;
+        const distMatch = maxDistance === Infinity || distNum <= maxDistance;
+        const priceMatch = item.price <= effectiveCeiling;
+        return catMatch && condMatch && distMatch && priceMatch;
+      });
 
       // Full text search baseline behavior
       if (mode === "fts") {
         // Postgres FTS baseline: exact keyword match on English dictionary
         // "mez" does not exist in standard English Postgres dictionary -> fails!
         if (coreQuery.includes("mez")) {
-          queryExplanation.innerHTML = `
-            <div style="background-color: var(--color-danger-bg); color: var(--color-danger); padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.84rem;">
-              <strong>❌ Full-Text Baseline Failed:</strong> Postgres <code>to_tsquery('english', '${coreQuery}')</code> returned <strong>0 hits</strong>.
-              Postgres lexical stemming cannot map Hinglish/Hindi term <em>"mez"</em> to English term <em>"table / desk"</em>.
-            </div>
-          `;
-          resultsContainer.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--color-text-muted);">
-              <p style="font-size: 1.1rem; font-weight: 600;">No matching items found via Postgres FTS.</p>
-              <p style="font-size: 0.85rem; margin-top: 6px;">Try switching to <strong>Semantic Search</strong> to test multilingual vector matching across 1,248 campus listings.</p>
-            </div>
-          `;
+          if (queryExplanation) {
+            queryExplanation.innerHTML = `
+              <div style="background-color: var(--color-danger-bg); color: var(--color-danger); padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.84rem;">
+                <strong>❌ Full-Text Baseline Failed:</strong> Postgres <code>to_tsquery('english', '${coreQuery}')</code> returned <strong>0 hits</strong>.
+                Postgres lexical stemming cannot map Hinglish/Hindi term <em>"mez"</em> to English term <em>"table / desk"</em>.
+              </div>
+            `;
+          }
+          if (resultsContainer) {
+            resultsContainer.innerHTML = `
+              <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--color-text-muted);">
+                <p style="font-size: 1.1rem; font-weight: 600;">No matching items found via Postgres FTS.</p>
+                <p style="font-size: 0.85rem; margin-top: 6px;">Try switching to <strong>Semantic Search</strong> to test multilingual vector matching across 1,248 campus listings.</p>
+              </div>
+            `;
+          }
           if (paginationStatus)
             paginationStatus.textContent = "0 matches found from 1,248 simulated listings";
           if (loadMoreBtn) loadMoreBtn.style.display = "none";
@@ -1173,25 +1212,26 @@
         // Standard token match
         const tokens = coreQuery.split(/\s+/).filter(Boolean);
         const filtered = pool.filter((item) => {
-          const matchToken =
+          return (
             tokens.length === 0 ||
             tokens.some(
               (t) =>
                 item.title.toLowerCase().includes(t) || item.tags.some((tag) => tag.includes(t))
-            );
-          const matchPrice = item.price <= ceiling;
-          return matchToken && matchPrice;
+            )
+          );
         });
 
-        queryExplanation.innerHTML = `
-          <div style="background-color: var(--color-bg); border: 1px solid var(--color-border); padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.82rem;">
-            <strong>Postgres FTS Baseline:</strong> Exact tsvector token matches for <code>[${tokens.join(
-              ", "
-            )}]</code> with SQL filter <code>price &le; ₹${
-              ceiling === Infinity ? "any" : ceiling
-            }</code>. (Found ${filtered.length} matches from 1,248 simulated listings).
-          </div>
-        `;
+        if (queryExplanation) {
+          queryExplanation.innerHTML = `
+            <div style="background-color: var(--color-bg); border: 1px solid var(--color-border); padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.82rem;">
+              <strong>Postgres FTS Baseline:</strong> Exact tsvector token matches for <code>[${tokens.join(
+                ", "
+              )}]</code> with SQL filter <code>price &le; ₹${
+                effectiveCeiling === Infinity ? "any" : effectiveCeiling
+              }</code>. (Found ${filtered.length} matches from 1,248 simulated listings).
+            </div>
+          `;
+        }
         displayCards(filtered);
       } else {
         // Semantic search behavior: understands Hinglish, maps "mez" -> "study desk / table"
@@ -1203,56 +1243,56 @@
         }
 
         const filtered = pool.filter((item) => {
-          if (!coreQuery) {
-            return item.price <= ceiling;
-          }
+          if (!coreQuery) return true;
+
           // If searching table or mez
           if (
             coreQuery.includes("table") ||
             coreQuery.includes("desk") ||
             coreQuery.includes("mez")
           ) {
-            return item.category === "furniture" && item.price <= ceiling;
+            return item.category === "furniture";
           }
           if (
             coreQuery.includes("clrs") ||
             coreQuery.includes("algorithm") ||
             coreQuery.includes("book")
           ) {
-            return item.category === "books" && item.price <= ceiling;
+            return item.category === "books";
           }
           if (coreQuery.includes("calc") || coreQuery.includes("casio")) {
-            return item.category === "electronics" && item.price <= ceiling;
+            return item.category === "electronics";
           }
           if (coreQuery.includes("cycle") || coreQuery.includes("bike")) {
-            return item.category === "hobbies" && item.price <= ceiling;
+            return item.category === "hobbies";
           }
           // General semantic match token fallback
           const tokens = coreQuery.split(/\s+/).filter(Boolean);
-          const matchToken = tokens.some(
+          return tokens.some(
             (t) =>
               item.title.toLowerCase().includes(t) ||
               item.tags.some((tag) => tag.includes(t)) ||
               item.category.includes(t)
           );
-          return matchToken && item.price <= ceiling;
         });
 
-        queryExplanation.innerHTML = `
-          <div style="background-color: var(--color-primary-light); border: 1px solid var(--color-primary-border); padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.82rem; color: var(--color-text);">
-            <strong>✨ Semantic Search (384-d pgvector + SQL Parser):</strong>
-            ${
-              hinglishMatched
-                ? `Mapped Hinglish token <code>"mez"</code> &rarr; <code>"Study Desk / Furniture"</code> (Cosine similarity: 0.89). `
-                : ""
-            }
-            Parsed price ceiling constraint: <code>price &le; ₹${
-              ceiling === Infinity ? "None" : ceiling.toLocaleString("en-IN")
-            }</code>. (Retrieved ${
-              filtered.length
-            } matching items across 1,248 simulated campus listings).
-          </div>
-        `;
+        if (queryExplanation) {
+          queryExplanation.innerHTML = `
+            <div style="background-color: var(--color-primary-light); border: 1px solid var(--color-primary-border); padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.82rem; color: var(--color-text);">
+              <strong>✨ Semantic Search (384-d pgvector + SQL Parser):</strong>
+              ${
+                hinglishMatched
+                  ? `Mapped Hinglish token <code>"mez"</code> &rarr; <code>"Study Desk / Furniture"</code> (Cosine similarity: 0.89). `
+                  : ""
+              }
+              Parsed price ceiling constraint: <code>price &le; ₹${
+                effectiveCeiling === Infinity ? "None" : effectiveCeiling.toLocaleString("en-IN")
+              }</code>. (Retrieved ${
+                filtered.length
+              } matching items across 1,248 simulated campus listings).
+            </div>
+          `;
+        }
         displayCards(filtered);
       }
     }
@@ -1265,8 +1305,8 @@
       if (items.length === 0) {
         resultsContainer.innerHTML = `
           <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--color-text-muted);">
-            <p style="font-weight: 600;">No listings match this specific query and price ceiling.</p>
-            <p style="font-size: 0.84rem; margin-top: 6px;">Try clearing filters to browse the 1,248 simulated campus listings catalog.</p>
+            <p style="font-weight: 600;">No listings match this specific query and filter combination.</p>
+            <p style="font-size: 0.84rem; margin-top: 6px;">Try clicking "Reset Filters" above to browse the full 1,248 simulated campus listings catalog.</p>
           </div>
         `;
         if (catalogCounter) {
@@ -1284,7 +1324,9 @@
       resultsContainer.innerHTML = paged
         .map(
           (item) => `
-        <div class="item-card">
+        <div class="item-card" data-listing-id="${
+          item.id
+        }" role="button" tabindex="0" aria-label="View AI price details for ${item.title}">
           <div class="item-thumbnail">
             ${getThumbSvg(item.svgType)}
             <span style="position: absolute; top: 8px; right: 8px;" class="fair-badge ${
@@ -1300,15 +1342,47 @@
             </div>
             <div class="item-footer">
               <div class="item-price">₹${item.price.toLocaleString("en-IN")}</div>
-              <button class="btn btn-secondary btn-sm" onclick="window.LOOP.openChatWithItem('${
-                item.title
-              }', ${item.price})">Message</button>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button type="button" class="btn btn-secondary btn-sm btn-item-msg" data-title="${encodeURIComponent(
+                  item.title
+                )}" data-price="${item.price}">Message</button>
+              </div>
             </div>
           </div>
         </div>
       `
         )
         .join("");
+
+      // Wire card click and keyboard navigation to open Detail View Modal
+      resultsContainer.querySelectorAll(".item-card").forEach((card) => {
+        const id = card.getAttribute("data-listing-id");
+        const itemObj = mockListings.find((m) => m.id === id);
+        if (!itemObj) return;
+
+        card.addEventListener("click", (e) => {
+          if (e.target.closest(".btn-item-msg")) return;
+          openListingDetailModal(itemObj, card);
+        });
+
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            if (e.target.closest(".btn-item-msg")) return;
+            e.preventDefault();
+            openListingDetailModal(itemObj, card);
+          }
+        });
+      });
+
+      // Wire direct message button on cards
+      resultsContainer.querySelectorAll(".btn-item-msg").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const title = decodeURIComponent(btn.getAttribute("data-title") || "");
+          const price = parseInt(btn.getAttribute("data-price") || "0", 10);
+          window.LOOP.openChatWithItem(title, price);
+        });
+      });
 
       if (catalogCounter) {
         catalogCounter.innerHTML = `Catalog: <strong>1,248 Simulated Campus Listings</strong> (${items.length} matched)`;
@@ -1333,19 +1407,56 @@
       }
     }
 
-    // Category filter pills in Discover screen
-    const catFilters = document.querySelectorAll(
-      "#discover-category-filters .preset-pill[data-category]"
-    );
-    catFilters.forEach((pill) => {
-      pill.addEventListener("click", () => {
-        catFilters.forEach((p) => p.classList.remove("active"));
-        pill.classList.add("active");
-        state.search.category = pill.getAttribute("data-category") || "all";
+    // Filter Chips: Category, Price, Condition, Distance
+    document.querySelectorAll(".discover-filter-card .filter-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const type = chip.getAttribute("data-filter");
+        const val = chip.getAttribute("data-val");
+        if (!type || !val) return;
+
+        const container = chip.closest(".filter-chips-wrap");
+        if (container) {
+          container.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("active"));
+          chip.classList.add("active");
+        }
+
+        if (type === "category") {
+          state.search.category = val;
+        } else if (type === "price") {
+          state.search.priceCeiling = val === "all" ? Infinity : parseInt(val, 10);
+        } else if (type === "condition") {
+          state.search.condition = val;
+        } else if (type === "distance") {
+          state.search.maxDistance = val === "all" ? Infinity : parseFloat(val);
+        }
+
         state.search.displayCount = 12;
         renderResults();
       });
     });
+
+    // Reset Filters Button
+    const resetFiltersBtn = document.getElementById("btn-reset-filters");
+    if (resetFiltersBtn) {
+      resetFiltersBtn.addEventListener("click", () => {
+        state.search.category = "all";
+        state.search.priceCeiling = Infinity;
+        state.search.condition = "all";
+        state.search.maxDistance = Infinity;
+
+        document.querySelectorAll(".discover-filter-card .filter-chip").forEach((chip) => {
+          if (chip.getAttribute("data-val") === "all") {
+            chip.classList.add("active");
+          } else {
+            chip.classList.remove("active");
+          }
+        });
+
+        state.search.displayCount = 12;
+        renderResults();
+        showToast("All catalog filters reset.");
+      });
+    }
 
     // Load More button in Discover screen
     const loadMoreBtn = document.getElementById("discover-load-more-btn");
@@ -1366,16 +1477,50 @@
       });
     }
 
+    // Sticky Top Search Bar & In-Screen Search Input Handlers
+    const topSearchInput = document.getElementById("top-search-input");
+    const topSearchBtn = document.getElementById("top-search-btn");
+    const topImgSearchBtn = document.getElementById("top-img-search-btn");
+
+    function executeSearch(queryVal) {
+      state.search.query = queryVal;
+      if (searchInput) searchInput.value = queryVal;
+      if (topSearchInput) topSearchInput.value = queryVal;
+      state.search.displayCount = 12;
+      if (state.currentScreen !== "discover") {
+        navigateTo("discover");
+      }
+      renderResults();
+    }
+
     if (searchBtn && searchInput) {
       searchBtn.addEventListener("click", () => {
-        state.search.query = searchInput.value;
-        renderResults();
+        executeSearch(searchInput.value);
       });
       searchInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
-          state.search.query = searchInput.value;
-          renderResults();
+          executeSearch(searchInput.value);
         }
+      });
+    }
+
+    if (topSearchBtn && topSearchInput) {
+      topSearchBtn.addEventListener("click", () => {
+        executeSearch(topSearchInput.value);
+      });
+      topSearchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          executeSearch(topSearchInput.value);
+        }
+      });
+    }
+
+    if (topImgSearchBtn) {
+      topImgSearchBtn.addEventListener("click", () => {
+        showToast(
+          "📷 Image search simulation: Extracted 512-d CLIP embedding and found 3 visually similar items in Campus."
+        );
+        executeSearch("study table");
       });
     }
 
@@ -1384,9 +1529,7 @@
       pill.addEventListener("click", () => {
         const text = pill.getAttribute("data-query");
         if (text) {
-          if (searchInput) searchInput.value = text;
-          state.search.query = text;
-          renderResults();
+          executeSearch(text);
         }
       });
     });
@@ -1407,16 +1550,14 @@
       });
     }
 
-    // Image search button (simulated)
+    // Image search button (simulated inside discover)
     const imgSearchBtn = document.getElementById("discover-img-search-btn");
     if (imgSearchBtn) {
       imgSearchBtn.addEventListener("click", () => {
         showToast(
           "📷 Image search simulation: Extracted 512-d CLIP embedding and found 3 visually similar items in Campus."
         );
-        if (searchInput) searchInput.value = "study table";
-        state.search.query = "study table";
-        renderResults();
+        executeSearch("study table");
       });
     }
 
@@ -1426,7 +1567,7 @@
       saveSearchBtn.addEventListener("click", () => {
         showToast(
           `🔔 Alert created for "${
-            searchInput.value || "study table"
+            state.search.query || "study table"
           }". You will receive instant notifications when matching items are listed.`
         );
       });
@@ -1434,6 +1575,307 @@
 
     // Initial render
     renderResults();
+  }
+
+  // ==========================================
+  // Listing Detail Modal: AI Price Range & Reasons
+  // ==========================================
+  let activeDetailItem = null;
+  let lastActiveCardElement = null;
+
+  function openListingDetailModal(item, triggerEl) {
+    activeDetailItem = item;
+    lastActiveCardElement = triggerEl || document.activeElement;
+
+    const modal = document.getElementById("listing-detail-modal");
+    if (!modal) return;
+
+    // Populate title & meta
+    const titleEl = document.getElementById("modal-item-title");
+    if (titleEl) titleEl.textContent = item.title;
+
+    const photoEl = document.getElementById("modal-item-photo");
+    if (photoEl) {
+      photoEl.innerHTML = `<svg viewBox="0 0 160 90" width="100%" height="100%">${
+        document.querySelector(`[data-listing-id="${item.id}"] .item-thumbnail svg`)
+          ? document.querySelector(`[data-listing-id="${item.id}"] .item-thumbnail svg`).innerHTML
+          : ""
+      }</svg>`;
+    }
+
+    const priceEl = document.getElementById("modal-item-price");
+    if (priceEl) priceEl.textContent = `₹${item.price.toLocaleString("en-IN")}`;
+
+    const fairBadgeEl = document.getElementById("modal-item-fair-badge");
+    if (fairBadgeEl) {
+      fairBadgeEl.className = `fair-badge ${item.badgeType || "fair"}`;
+      fairBadgeEl.textContent = item.badge || "Fair Price";
+    }
+
+    const condEl = document.getElementById("modal-item-condition");
+    if (condEl) condEl.textContent = `Condition: ${item.condition}`;
+
+    const distEl = document.getElementById("modal-item-distance");
+    if (distEl) distEl.textContent = `📍 ${item.distance}`;
+
+    const catEl = document.getElementById("modal-item-category");
+    if (catEl)
+      catEl.textContent = `Category: ${
+        item.category.charAt(0).toUpperCase() + item.category.slice(1)
+      }`;
+
+    // Conformal AI price interval calculation
+    const low = Math.max(100, Math.round((item.price * 0.84) / 50) * 50);
+    const high = Math.round((item.price * 1.16) / 50) * 50;
+
+    const rangeMinEl = document.getElementById("modal-range-min");
+    if (rangeMinEl) rangeMinEl.textContent = `₹${low.toLocaleString("en-IN")}`;
+
+    const rangeMedianEl = document.getElementById("modal-range-median");
+    if (rangeMedianEl) rangeMedianEl.textContent = `Median: ₹${item.price.toLocaleString("en-IN")}`;
+
+    const rangeMaxEl = document.getElementById("modal-range-max");
+    if (rangeMaxEl) rangeMaxEl.textContent = `₹${high.toLocaleString("en-IN")}`;
+
+    const statusTextEl = document.getElementById("modal-conformal-status-text");
+    if (statusTextEl) {
+      statusTextEl.textContent = `Listed price ₹${item.price.toLocaleString(
+        "en-IN"
+      )} satisfies 80% conformal coverage`;
+    }
+
+    // Set conformal bar pin & fill
+    const fillEl = document.getElementById("modal-conformal-fill");
+    if (fillEl) {
+      fillEl.style.left = "15%";
+      fillEl.style.width = "70%";
+    }
+    const pinEl = document.getElementById("modal-conformal-pin");
+    if (pinEl) {
+      pinEl.style.left = "50%";
+    }
+
+    // Populate SHAP / Explainable AI drivers
+    const driversListEl = document.getElementById("modal-ai-drivers-list");
+    if (driversListEl) {
+      const condAdjustment =
+        item.condition === "Like New"
+          ? "+14% premium for like-new condition with minimal cosmetic wear"
+          : item.condition === "Good"
+            ? "standard baseline price for functional student-owned equipment"
+            : "-16% condition discount for observable student hostel usage";
+
+      driversListEl.innerHTML = `
+        <div class="ai-driver-item">
+          <span class="ai-driver-icon" aria-hidden="true">🔍</span>
+          <div>
+            <strong>Condition Assessment:</strong> ${condAdjustment} (verified via vision inspection).
+          </div>
+        </div>
+        <div class="ai-driver-item">
+          <span class="ai-driver-icon" aria-hidden="true">📈</span>
+          <div>
+            <strong>Campus Category Velocity:</strong> High student demand in <em>${
+              item.category
+            }</em> (average 3.4 days to exchange in ADYPU hostels).
+          </div>
+        </div>
+        <div class="ai-driver-item">
+          <span class="ai-driver-icon" aria-hidden="true">📍</span>
+          <div>
+            <strong>Hyperlocal Proximity:</strong> Located at <em>${
+              item.distance
+            }</em> with 0 shipping friction and safe campus library handover.
+          </div>
+        </div>
+        <div class="ai-driver-item">
+          <span class="ai-driver-icon" aria-hidden="true">🛡️</span>
+          <div>
+            <strong>Conformal Deal Calibration:</strong> Model calibrated on 1,248 campus transactions guarantees 80% coverage interval [₹${low.toLocaleString(
+              "en-IN"
+            )} — ₹${high.toLocaleString("en-IN")}].
+          </div>
+        </div>
+      `;
+    }
+
+    modal.classList.remove("hidden");
+    const closeBtn = document.getElementById("btn-close-detail-modal");
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeListingDetailModal() {
+    const modal = document.getElementById("listing-detail-modal");
+    if (modal && !modal.classList.contains("hidden")) {
+      modal.classList.add("hidden");
+      if (lastActiveCardElement && typeof lastActiveCardElement.focus === "function") {
+        lastActiveCardElement.focus();
+      }
+    }
+  }
+
+  function initListingDetailModalEvents() {
+    const modal = document.getElementById("listing-detail-modal");
+    const closeBtn = document.getElementById("btn-close-detail-modal");
+    const msgBtn = document.getElementById("btn-modal-message-seller");
+    const swapBtn = document.getElementById("btn-modal-offer-swap");
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", closeListingDetailModal);
+    }
+
+    if (modal) {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          closeListingDetailModal();
+        }
+      });
+    }
+
+    if (msgBtn) {
+      msgBtn.addEventListener("click", () => {
+        if (activeDetailItem) {
+          const title = activeDetailItem.title;
+          const price = activeDetailItem.price;
+          closeListingDetailModal();
+          window.LOOP.openChatWithItem(title, price);
+        }
+      });
+    }
+
+    if (swapBtn) {
+      swapBtn.addEventListener("click", () => {
+        if (activeDetailItem) {
+          const title = activeDetailItem.title;
+          closeListingDetailModal();
+          navigateTo("swap");
+          showToast(`Swap Engine active: Target item set to "${title}"`);
+        }
+      });
+    }
+
+    // Modal trap focus and escape key
+    document.addEventListener("keydown", (e) => {
+      if (!modal || modal.classList.contains("hidden")) return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeListingDetailModal();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        const focusables = modal.querySelectorAll(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        );
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    });
+  }
+
+  // ==========================================
+  // Drawer Navigation Controller (Mobile slide-in drawer at 360px+)
+  // ==========================================
+  function initDrawerNav() {
+    const menuBtn = document.getElementById("menu-drawer-btn");
+    const sidebar = document.getElementById("app-sidebar");
+    const backdrop = document.getElementById("sidebar-drawer-backdrop");
+    const closeBtn = document.getElementById("drawer-close-btn");
+
+    function openDrawer() {
+      if (!sidebar) return;
+      sidebar.classList.add("drawer-open");
+      if (backdrop) backdrop.classList.remove("hidden");
+      if (menuBtn) menuBtn.setAttribute("aria-expanded", "true");
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function closeDrawer() {
+      if (!sidebar) return;
+      sidebar.classList.remove("drawer-open");
+      if (backdrop) backdrop.classList.add("hidden");
+      if (menuBtn) {
+        menuBtn.setAttribute("aria-expanded", "false");
+        if (document.activeElement && sidebar.contains(document.activeElement)) {
+          menuBtn.focus();
+        }
+      }
+    }
+
+    if (menuBtn) {
+      menuBtn.addEventListener("click", () => {
+        const isOpen = sidebar && sidebar.classList.contains("drawer-open");
+        if (isOpen) closeDrawer();
+        else openDrawer();
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", closeDrawer);
+    }
+
+    if (backdrop) {
+      backdrop.addEventListener("click", closeDrawer);
+    }
+
+    // Escape key and focus trap inside drawer
+    document.addEventListener("keydown", (e) => {
+      if (!sidebar || !sidebar.classList.contains("drawer-open")) return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeDrawer();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        const focusables = sidebar.querySelectorAll(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        );
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    });
+
+    // Close drawer when a navigation item is clicked on mobile viewports
+    sidebar.querySelectorAll(".nav-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        if (window.innerWidth <= 768) {
+          closeDrawer();
+        }
+      });
+    });
+
+    window.LOOP = window.LOOP || {};
+    window.LOOP.openDrawer = openDrawer;
+    window.LOOP.closeDrawer = closeDrawer;
   }
 
   // ==========================================
@@ -2252,26 +2694,37 @@
       snapHeatmapToggle.dispatchEvent(new Event("change"));
     }
 
-    // 2. Reset Discover Search
+    // 2. Reset Discover Search and Filters
     state.search.query = "study table under 3000";
     state.search.mode = "semantic";
     state.search.category = "all";
+    state.search.priceCeiling = Infinity;
+    state.search.condition = "all";
+    state.search.maxDistance = Infinity;
     state.search.displayCount = 12;
 
     const discInput = document.getElementById("discover-search-input");
     if (discInput) discInput.value = "study table under 3000";
-    const catPills = document.querySelectorAll(
-      "#discover-category-filters .preset-pill[data-category]"
-    );
-    catPills.forEach((p) => {
-      if (p.getAttribute("data-category") === "all") p.classList.add("active");
-      else p.classList.remove("active");
+    const topSearchInput = document.getElementById("top-search-input");
+    if (topSearchInput) topSearchInput.value = "study table under 3000";
+
+    document.querySelectorAll(".discover-filter-card .filter-chip").forEach((chip) => {
+      if (chip.getAttribute("data-val") === "all") {
+        chip.classList.add("active");
+      } else {
+        chip.classList.remove("active");
+      }
     });
+
     const sSemantic = document.getElementById("search-mode-semantic");
     const sFts = document.getElementById("search-mode-fts");
     if (sSemantic && sFts) {
       sSemantic.classList.add("active");
       sFts.classList.remove("active");
+    }
+    closeListingDetailModal();
+    if (window.LOOP && window.LOOP.closeDrawer) {
+      window.LOOP.closeDrawer();
     }
     const discBtn = document.getElementById("discover-search-btn");
     if (discBtn) discBtn.click();
@@ -2453,8 +2906,8 @@
     const kpiCorrections = document.getElementById("overview-kpi-corrections");
     if (kpiCorrections) kpiCorrections.textContent = "42 logged";
 
-    // 10. Reset view to overview
-    navigateTo("overview");
+    // 10. Reset view to discover
+    navigateTo("discover");
   }
 
   function resetAuthForms() {
@@ -2937,7 +3390,7 @@
         setDemoSession(session);
         updateDashboardUserChip(session);
         setAuthGateVisible(false);
-        navigateTo("overview");
+        navigateTo("discover");
         showToast(`Welcome to LOOP, ${session.identifier}!`);
       });
     }
@@ -2970,21 +3423,19 @@
       navigateTo("discover");
       const searchInput = document.getElementById("discover-search-input");
       if (searchInput) searchInput.value = "";
+      const topSearchInput = document.getElementById("top-search-input");
+      if (topSearchInput) topSearchInput.value = "";
       state.search.query = "";
       state.search.category = category || "all";
       state.search.displayCount = 12;
-      const catFilters = document.querySelectorAll(
-        "#discover-category-filters .preset-pill[data-category]"
-      );
-      catFilters.forEach((p) => {
-        if (p.getAttribute("data-category") === (category || "all")) {
-          p.classList.add("active");
-        } else {
-          p.classList.remove("active");
+      document.querySelectorAll(".discover-filter-card .filter-chip").forEach((chip) => {
+        const type = chip.getAttribute("data-filter");
+        const val = chip.getAttribute("data-val");
+        if (type === "category") {
+          if (val === (category || "all")) chip.classList.add("active");
+          else chip.classList.remove("active");
         }
       });
-      const discoverResultsContainer = document.getElementById("discover-results-container");
-      // Trigger search button or re-render
       const sBtn = document.getElementById("discover-search-btn");
       if (sBtn) sBtn.click();
       showToast("Exploring full campus catalog (1,248 simulated listings)");
@@ -3011,7 +3462,7 @@
       });
     });
 
-    // Mobile nav bar clicks
+    // Mobile nav bar clicks if present
     document.querySelectorAll(".mobile-nav-bar .mobile-nav-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const screenId = btn.getAttribute("data-screen");
@@ -3027,7 +3478,22 @@
       });
     }
 
-    // Initialize all screens
+    // Logo click navigates to Discover landing screen
+    document.querySelectorAll(".brand-logo").forEach((logo) => {
+      logo.addEventListener("click", (e) => {
+        e.preventDefault();
+        navigateTo("discover");
+      });
+    });
+
+    window.addEventListener("hashchange", () => {
+      const h = window.location.hash.replace("#", "");
+      if (h && document.getElementById("screen-" + h)) {
+        navigateTo(h);
+      }
+    });
+
+    // Initialize all screens & interactions
     initOverviewScreen();
     initSnapScreen();
     initDiscoverScreen();
@@ -3039,13 +3505,15 @@
     initImpactScreen();
     initAdminScreen();
     initAuthGate();
+    initDrawerNav();
+    initListingDetailModalEvents();
 
-    // Check initial hash route
+    // Check initial hash route (defaults to discover)
     const hash = window.location.hash.replace("#", "");
-    if (hash && document.getElementById("screen-" + hash)) {
+    if (hash && document.getElementById("screen-" + hash) && hash !== "overview") {
       navigateTo(hash);
     } else {
-      navigateTo("overview");
+      navigateTo("discover");
     }
   });
 })();
