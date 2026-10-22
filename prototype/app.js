@@ -42,6 +42,8 @@
     search: {
       query: "study table under 3000",
       mode: "semantic", // 'semantic' or 'fts'
+      category: "all",
+      displayCount: 12,
     },
 
     // Chat and Handover state
@@ -430,15 +432,16 @@
     const resultsContainer = document.getElementById("discover-results-container");
     const queryExplanation = document.getElementById("discover-query-explanation");
 
-    // Simulated database of listings
+    // Simulated database of 30 rich campus listings representing the 1,248 catalog
     const mockListings = [
+      // FURNITURE (10 items)
       {
         id: "desk-1",
         title: "Ergonomic Wooden Study Desk with Drawer",
         category: "furniture",
         tags: ["study table", "desk", "mez", "furniture", "drawer"],
         price: 2600,
-        distance: "0.4 km - Hostel Block B",
+        distance: "0.4 km • Hostel Block B",
         condition: "Good",
         badge: "Fair Price",
         badgeType: "fair",
@@ -450,7 +453,7 @@
         category: "furniture",
         tags: ["study table", "desk", "mez", "foldable", "table"],
         price: 1450,
-        distance: "0.6 km - Hostel Block C",
+        distance: "0.6 km • Hostel Block C",
         condition: "Like New",
         badge: "Great Deal",
         badgeType: "great",
@@ -462,47 +465,341 @@
         category: "furniture",
         tags: ["study table", "desk", "mez", "teak", "executive"],
         price: 3800,
-        distance: "1.2 km - Faculty Quarters",
+        distance: "1.2 km • Faculty Quarters",
         condition: "Fair",
         badge: "Fair Price",
         badgeType: "fair",
         svgType: "table",
       },
       {
-        id: "book-1",
-        title: "Introduction to Algorithms (CLRS 3rd Edition)",
-        category: "books",
-        tags: ["clrs", "algorithms", "book", "computer science", "cormen"],
-        price: 950,
-        distance: "0.2 km - Library Quad",
+        id: "desk-4",
+        title: "Minimalist White Frame Study Desk",
+        category: "furniture",
+        tags: ["study table", "desk", "mez", "white", "minimalist"],
+        price: 1950,
+        distance: "0.3 km • Hostel Block A",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "table",
+      },
+      {
+        id: "chair-1",
+        title: "Ergonomic High-Back Mesh Study Chair",
+        category: "furniture",
+        tags: ["chair", "ergonomic", "mesh", "furniture", "study"],
+        price: 2200,
+        distance: "0.5 km • Hostel Block B",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "chair",
+      },
+      {
+        id: "chair-2",
+        title: "Godrej Fabric Study Chair with Wheels",
+        category: "furniture",
+        tags: ["chair", "study", "wheels", "godrej", "furniture"],
+        price: 1250,
+        distance: "0.8 km • Society Tower 2",
         condition: "Good",
         badge: "Fair Price",
         badgeType: "fair",
-        svgType: "book",
+        svgType: "chair",
       },
+      {
+        id: "lamp-1",
+        title: "Philips EyeCare Rechargeable LED Desk Lamp",
+        category: "furniture",
+        tags: ["lamp", "led", "light", "study", "philips", "furniture"],
+        price: 650,
+        distance: "0.2 km • Hostel Block C",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "lamp",
+      },
+      {
+        id: "shelf-1",
+        title: "3-Tier Modular Wooden Bookcase & Shelf",
+        category: "furniture",
+        tags: ["bookshelf", "shelf", "storage", "rack", "furniture"],
+        price: 1100,
+        distance: "0.9 km • Faculty Enclave",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "table",
+      },
+      {
+        id: "chair-3",
+        title: "Lounge Bean Bag with Premium Filler",
+        category: "furniture",
+        tags: ["beanbag", "lounge", "chair", "furniture"],
+        price: 850,
+        distance: "0.7 km • Hostel Block D",
+        condition: "Fair",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "chair",
+      },
+      {
+        id: "lamp-2",
+        title: "Wipro Smart LED Study Lamp with Touch Dimmer",
+        category: "furniture",
+        tags: ["lamp", "wipro", "smart", "led", "furniture"],
+        price: 900,
+        distance: "0.4 km • Hostel Block A",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "lamp",
+      },
+
+      // ELECTRONICS (10 items)
       {
         id: "calc-1",
         title: "Casio FX-991EX ClassWiz Scientific Calculator",
         category: "electronics",
         tags: ["calculator", "scientific", "casio", "classwiz", "maths"],
         price: 1100,
-        distance: "0.5 km - Engineering Dept",
+        distance: "0.5 km • Engineering Dept",
         condition: "Like New",
         badge: "Great Deal",
         badgeType: "great",
         svgType: "calc",
       },
       {
+        id: "calc-2",
+        title: "Texas Instruments TI-84 Plus Graphic Calculator",
+        category: "electronics",
+        tags: ["calculator", "scientific", "graphing", "ti84", "electronics"],
+        price: 3400,
+        distance: "0.7 km • Science Block",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "calc",
+      },
+      {
+        id: "calc-3",
+        title: "Casio FX-82MS 2nd Gen Scientific Calculator",
+        category: "electronics",
+        tags: ["calculator", "scientific", "casio", "basic", "maths"],
+        price: 550,
+        distance: "0.3 km • Hostel Block B",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "calc",
+      },
+      {
+        id: "monitor-1",
+        title: "Dell 24-inch Full HD Borderless IPS Monitor",
+        category: "electronics",
+        tags: ["monitor", "screen", "dell", "display", "electronics"],
+        price: 4800,
+        distance: "0.6 km • Hostel Block C",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "laptop",
+      },
+      {
+        id: "audio-1",
+        title: "Sony WH-1000XM4 Noise Cancelling Headphones",
+        category: "electronics",
+        tags: ["headphones", "sony", "wireless", "audio", "electronics"],
+        price: 9500,
+        distance: "1.1 km • Society Tower 1",
+        condition: "Like New",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "headphones",
+      },
+      {
+        id: "audio-2",
+        title: "boAt Rockerz 450 Bluetooth On-Ear Headphones",
+        category: "electronics",
+        tags: ["headphones", "boat", "bluetooth", "audio", "electronics"],
+        price: 800,
+        distance: "0.4 km • Hostel Block A",
+        condition: "Good",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "headphones",
+      },
+      {
+        id: "laptop-1",
+        title: "Lenovo ThinkPad L14 Gen 2 (Ryzen 5 / 16GB / 512GB)",
+        category: "electronics",
+        tags: ["laptop", "thinkpad", "lenovo", "computer", "electronics"],
+        price: 26500,
+        distance: "0.8 km • Tech Hub",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "laptop",
+      },
+      {
+        id: "mouse-1",
+        title: "Logitech MX Master 2S Wireless Ergonomic Mouse",
+        category: "electronics",
+        tags: ["mouse", "logitech", "wireless", "ergonomic", "electronics"],
+        price: 2400,
+        distance: "0.3 km • Library Block",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "laptop",
+      },
+      {
+        id: "kettle-1",
+        title: "Prestige 1.5L Stainless Steel Electric Kettle",
+        category: "electronics",
+        tags: ["kettle", "electric", "hostel", "appliance", "electronics"],
+        price: 550,
+        distance: "0.2 km • Hostel Block B",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "lamp",
+      },
+      {
+        id: "power-1",
+        title: "Mi 20000mAh 18W Fast Charging Power Bank",
+        category: "electronics",
+        tags: ["powerbank", "battery", "charger", "mi", "electronics"],
+        price: 950,
+        distance: "0.5 km • Hostel Block C",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "calc",
+      },
+
+      // BOOKS (6 items)
+      {
+        id: "book-1",
+        title: "Introduction to Algorithms (CLRS 3rd Edition)",
+        category: "books",
+        tags: ["clrs", "algorithms", "book", "computer science", "cormen"],
+        price: 950,
+        distance: "0.2 km • Library Quad",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "book",
+      },
+      {
+        id: "book-2",
+        title: "Thomas' Calculus Early Transcendentals (14th Ed)",
+        category: "books",
+        tags: ["calculus", "math", "mathematics", "thomas", "book"],
+        price: 750,
+        distance: "0.4 km • Maths Dept",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "book",
+      },
+      {
+        id: "book-3",
+        title: "Resnick Halliday & Walker Fundamentals of Physics",
+        category: "books",
+        tags: ["physics", "halliday", "resnick", "textbook", "book"],
+        price: 850,
+        distance: "0.3 km • Science Block",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "book",
+      },
+      {
+        id: "book-4",
+        title: "Computer Networks by Andrew Tanenbaum (5th Ed)",
+        category: "books",
+        tags: ["networking", "networks", "tanenbaum", "cs", "book"],
+        price: 600,
+        distance: "0.5 km • Hostel Block D",
+        condition: "Good",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "book",
+      },
+      {
+        id: "book-5",
+        title: "Higher Engineering Mathematics by B.S. Grewal",
+        category: "books",
+        tags: ["engineering", "mathematics", "grewal", "textbook", "book"],
+        price: 500,
+        distance: "0.6 km • Hostel Block A",
+        condition: "Fair",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "book",
+      },
+      {
+        id: "book-6",
+        title: "Clean Code: Agile Software Craftsmanship by Robert Martin",
+        category: "books",
+        tags: ["clean code", "programming", "software", "book"],
+        price: 650,
+        distance: "0.3 km • Library Block",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "book",
+      },
+
+      // HOBBIES & SPORTS (4 items)
+      {
         id: "cycle-1",
         title: "Hero Sprint 26T Campus Bicycle",
         category: "hobbies",
         tags: ["cycle", "bicycle", "campus", "bike", "sprint"],
         price: 3200,
-        distance: "0.8 km - Sports Complex",
+        distance: "0.8 km • Sports Complex",
         condition: "Fair",
         badge: "Fair Price",
         badgeType: "fair",
         svgType: "cycle",
+      },
+      {
+        id: "cycle-2",
+        title: "Firefox Target 21-Speed Alloy Mountain Bike",
+        category: "hobbies",
+        tags: ["cycle", "bicycle", "firefox", "gear", "mtb"],
+        price: 6800,
+        distance: "1.0 km • South Gate",
+        condition: "Good",
+        badge: "Fair Price",
+        badgeType: "fair",
+        svgType: "cycle",
+      },
+      {
+        id: "draw-1",
+        title: "Omega Engineering Mini Drafter & Drawing Board A2",
+        category: "hobbies",
+        tags: ["engineering", "drawing board", "drafter", "graphics", "architecture"],
+        price: 850,
+        distance: "0.5 km • Architecture Dept",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "table",
+      },
+      {
+        id: "lab-1",
+        title: "Unisex Cotton Lab Coat & Safety Goggles (Size L)",
+        category: "hobbies",
+        tags: ["lab coat", "chemistry", "aprons", "safety", "medical"],
+        price: 350,
+        distance: "0.3 km • Chemistry Block",
+        condition: "Like New",
+        badge: "Great Deal",
+        badgeType: "great",
+        svgType: "lab",
       },
     ];
 
@@ -541,6 +838,53 @@
           <circle cx="80" cy="66" r="3" fill="#cbd5e1"/>
           <circle cx="92" cy="66" r="3" fill="#cbd5e1"/>
         </svg>`;
+      } else if (type === "chair") {
+        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
+          <rect width="160" height="90" fill="#f8fafc"/>
+          <path d="M 65 15 C 65 15, 95 15, 95 15 C 98 15, 100 18, 100 22 L 98 48 C 98 52, 95 55, 90 55 L 70 55 C 65 55, 62 52, 62 48 L 60 22 C 60 18, 62 15, 65 15 Z" fill="#334155"/>
+          <rect x="58" y="52" width="44" height="8" rx="3" fill="#1e293b"/>
+          <rect x="77" y="60" width="6" height="16" fill="#64748b"/>
+          <line x1="55" y1="76" x2="105" y2="76" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="58" cy="80" r="3" fill="#1e293b"/>
+          <circle cx="80" cy="80" r="3" fill="#1e293b"/>
+          <circle cx="102" cy="80" r="3" fill="#1e293b"/>
+          <path d="M 54 35 L 54 48 L 60 48" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M 106 35 L 106 48 L 100 48" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>`;
+      } else if (type === "lamp") {
+        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
+          <rect width="160" height="90" fill="#f8fafc"/>
+          <ellipse cx="60" cy="76" rx="20" ry="6" fill="#64748b"/>
+          <path d="M 60 74 Q 60 40 78 30 Q 95 20 102 32" stroke="#475569" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <polygon points="95,22 120,38 105,48" fill="#f59e0b"/>
+          <polygon points="108,44 145,76 115,82 100,48" fill="#fef08a" opacity="0.35"/>
+        </svg>`;
+      } else if (type === "laptop") {
+        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
+          <rect width="160" height="90" fill="#f8fafc"/>
+          <rect x="42" y="16" width="76" height="48" rx="3" fill="#1e293b"/>
+          <rect x="46" y="20" width="68" height="40" rx="1" fill="#0284c7"/>
+          <polygon points="34,70 126,70 120,64 40,64" fill="#64748b"/>
+          <line x1="72" y1="67" x2="88" y2="67" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>`;
+      } else if (type === "headphones") {
+        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
+          <rect width="160" height="90" fill="#f8fafc"/>
+          <path d="M 50 50 A 30 30 0 0 1 110 50" stroke="#334155" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <rect x="44" y="44" width="14" height="26" rx="6" fill="#059669"/>
+          <rect x="102" y="44" width="14" height="26" rx="6" fill="#059669"/>
+          <rect x="42" y="50" width="4" height="14" rx="2" fill="#10b981"/>
+          <rect x="114" y="50" width="4" height="14" rx="2" fill="#10b981"/>
+        </svg>`;
+      } else if (type === "lab") {
+        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
+          <rect width="160" height="90" fill="#f8fafc"/>
+          <path d="M 60 18 L 80 32 L 100 18 L 115 32 L 105 40 L 100 80 L 60 80 L 55 40 L 45 32 Z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+          <polygon points="68,18 80,32 92,18" fill="#cbd5e1"/>
+          <line x1="80" y1="32" x2="80" y2="80" stroke="#94a3b8" stroke-width="1.5"/>
+          <circle cx="80" cy="46" r="2" fill="#64748b"/>
+          <circle cx="80" cy="58" r="2" fill="#64748b"/>
+        </svg>`;
       } else {
         return `<svg viewBox="0 0 160 90" width="100%" height="100%">
           <rect width="160" height="90" fill="#f1f5f9"/>
@@ -555,6 +899,10 @@
     function renderResults() {
       const q = (state.search.query || "").trim().toLowerCase();
       const mode = state.search.mode;
+      const selectedCat = state.search.category || "all";
+      const catalogCounter = document.getElementById("discover-catalog-counter");
+      const paginationStatus = document.getElementById("discover-pagination-status");
+      const loadMoreBtn = document.getElementById("discover-load-more-btn");
 
       // Extract price ceiling heuristic (e.g. "under 3000", "< 2500")
       let ceiling = Infinity;
@@ -568,6 +916,12 @@
         .replace(/under\s*\d+/i, "")
         .replace(/<\s*\d+/i, "")
         .trim();
+
+      // Category pre-filter
+      let pool = mockListings;
+      if (selectedCat !== "all") {
+        pool = mockListings.filter((item) => item.category === selectedCat);
+      }
 
       // Full text search baseline behavior
       if (mode === "fts") {
@@ -583,17 +937,24 @@
           resultsContainer.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--color-text-muted);">
               <p style="font-size: 1.1rem; font-weight: 600;">No matching items found via Postgres FTS.</p>
-              <p style="font-size: 0.85rem; margin-top: 6px;">Try switching to <strong>Semantic Search</strong> to test multilingual vector matching.</p>
+              <p style="font-size: 0.85rem; margin-top: 6px;">Try switching to <strong>Semantic Search</strong> to test multilingual vector matching across 1,248 campus listings.</p>
             </div>
           `;
+          if (paginationStatus)
+            paginationStatus.textContent = "0 matches found from 1,248 simulated listings";
+          if (loadMoreBtn) loadMoreBtn.style.display = "none";
           return;
         }
 
         // Standard token match
         const tokens = coreQuery.split(/\s+/).filter(Boolean);
-        const filtered = mockListings.filter((item) => {
+        const filtered = pool.filter((item) => {
           const matchToken =
-            tokens.length === 0 || tokens.some((t) => item.title.toLowerCase().includes(t));
+            tokens.length === 0 ||
+            tokens.some(
+              (t) =>
+                item.title.toLowerCase().includes(t) || item.tags.some((tag) => tag.includes(t))
+            );
           const matchPrice = item.price <= ceiling;
           return matchToken && matchPrice;
         });
@@ -604,7 +965,7 @@
               ", "
             )}]</code> with SQL filter <code>price &le; ₹${
               ceiling === Infinity ? "any" : ceiling
-            }</code>. (Found ${filtered.length} matches).
+            }</code>. (Found ${filtered.length} matches from 1,248 simulated listings).
           </div>
         `;
         displayCards(filtered);
@@ -617,7 +978,10 @@
           hinglishMatched = true;
         }
 
-        const filtered = mockListings.filter((item) => {
+        const filtered = pool.filter((item) => {
+          if (!coreQuery) {
+            return item.price <= ceiling;
+          }
           // If searching table or mez
           if (
             coreQuery.includes("table") ||
@@ -639,7 +1003,15 @@
           if (coreQuery.includes("cycle") || coreQuery.includes("bike")) {
             return item.category === "hobbies" && item.price <= ceiling;
           }
-          return item.price <= ceiling;
+          // General semantic match token fallback
+          const tokens = coreQuery.split(/\s+/).filter(Boolean);
+          const matchToken = tokens.some(
+            (t) =>
+              item.title.toLowerCase().includes(t) ||
+              item.tags.some((tag) => tag.includes(t)) ||
+              item.category.includes(t)
+          );
+          return matchToken && item.price <= ceiling;
         });
 
         queryExplanation.innerHTML = `
@@ -652,7 +1024,9 @@
             }
             Parsed price ceiling constraint: <code>price &le; ₹${
               ceiling === Infinity ? "None" : ceiling.toLocaleString("en-IN")
-            }</code>. (Retrieved ${filtered.length} items).
+            }</code>. (Retrieved ${
+              filtered.length
+            } matching items across 1,248 simulated campus listings).
           </div>
         `;
         displayCards(filtered);
@@ -660,16 +1034,30 @@
     }
 
     function displayCards(items) {
+      const catalogCounter = document.getElementById("discover-catalog-counter");
+      const paginationStatus = document.getElementById("discover-pagination-status");
+      const loadMoreBtn = document.getElementById("discover-load-more-btn");
+
       if (items.length === 0) {
         resultsContainer.innerHTML = `
           <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--color-text-muted);">
             <p style="font-weight: 600;">No listings match this specific query and price ceiling.</p>
+            <p style="font-size: 0.84rem; margin-top: 6px;">Try clearing filters to browse the 1,248 simulated campus listings catalog.</p>
           </div>
         `;
+        if (catalogCounter) {
+          catalogCounter.innerHTML = `Catalog: <strong>1,248 Simulated Campus Listings</strong> (0 matches)`;
+        }
+        if (paginationStatus)
+          paginationStatus.textContent = "0 matching listings from 1,248 catalog";
+        if (loadMoreBtn) loadMoreBtn.style.display = "none";
         return;
       }
 
-      resultsContainer.innerHTML = items
+      const limit = state.search.displayCount || 12;
+      const paged = items.slice(0, limit);
+
+      resultsContainer.innerHTML = paged
         .map(
           (item) => `
         <div class="item-card">
@@ -697,6 +1085,61 @@
       `
         )
         .join("");
+
+      if (catalogCounter) {
+        catalogCounter.innerHTML = `Catalog: <strong>1,248 Simulated Campus Listings</strong> (${items.length} matched)`;
+      }
+
+      if (paginationStatus) {
+        paginationStatus.textContent = `Showing ${paged.length} of ${items.length} matching listings (from 1,248 catalog)`;
+      }
+
+      if (loadMoreBtn) {
+        if (paged.length < items.length) {
+          loadMoreBtn.style.display = "inline-block";
+          loadMoreBtn.disabled = false;
+          loadMoreBtn.textContent = `Load More from Catalog (${
+            items.length - paged.length
+          } more available)`;
+        } else {
+          loadMoreBtn.style.display = "inline-block";
+          loadMoreBtn.disabled = true;
+          loadMoreBtn.textContent = `All ${items.length} Matching Listings Displayed (from 1,248 catalog)`;
+        }
+      }
+    }
+
+    // Category filter pills in Discover screen
+    const catFilters = document.querySelectorAll(
+      "#discover-category-filters .preset-pill[data-category]"
+    );
+    catFilters.forEach((pill) => {
+      pill.addEventListener("click", () => {
+        catFilters.forEach((p) => p.classList.remove("active"));
+        pill.classList.add("active");
+        state.search.category = pill.getAttribute("data-category") || "all";
+        state.search.displayCount = 12;
+        renderResults();
+      });
+    });
+
+    // Load More button in Discover screen
+    const loadMoreBtn = document.getElementById("discover-load-more-btn");
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener("click", () => {
+        state.search.displayCount = (state.search.displayCount || 12) + 12;
+        renderResults();
+      });
+    }
+
+    // Overview KPI card click jumps to Discover
+    const overviewKpiCard = document.getElementById("overview-kpi-listings-card");
+    if (overviewKpiCard) {
+      overviewKpiCard.addEventListener("click", () => {
+        if (window.LOOP && window.LOOP.navigateToDiscover) {
+          window.LOOP.navigateToDiscover("all");
+        }
+      });
     }
 
     if (searchBtn && searchInput) {
@@ -1909,8 +2352,31 @@
     }
   }
 
-  // Helper for cross-screen chat opening
+  // Helper for cross-screen chat and discover opening
   window.LOOP = {
+    navigateToDiscover: function (category) {
+      navigateTo("discover");
+      const searchInput = document.getElementById("discover-search-input");
+      if (searchInput) searchInput.value = "";
+      state.search.query = "";
+      state.search.category = category || "all";
+      state.search.displayCount = 12;
+      const catFilters = document.querySelectorAll(
+        "#discover-category-filters .preset-pill[data-category]"
+      );
+      catFilters.forEach((p) => {
+        if (p.getAttribute("data-category") === (category || "all")) {
+          p.classList.add("active");
+        } else {
+          p.classList.remove("active");
+        }
+      });
+      const discoverResultsContainer = document.getElementById("discover-results-container");
+      // Trigger search button or re-render
+      const sBtn = document.getElementById("discover-search-btn");
+      if (sBtn) sBtn.click();
+      showToast("Exploring full campus catalog (1,248 simulated listings)");
+    },
     openChatWithItem: function (itemTitle, itemPrice) {
       navigateTo("chat");
       const headerItem = document.getElementById("chat-listing-title");

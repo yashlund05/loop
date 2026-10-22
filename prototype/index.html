@@ -405,12 +405,12 @@
         <!-- KPI Cards -->
         <div class="grid-kpi">
           <div class="kpi-card">
-            <div class="kpi-label">
+            <div class="kpi-label" style="cursor: pointer;" id="overview-kpi-listings-card" title="Click to view all 1,248 campus listings in Discover">
               <span>Simulated Campus Listings</span>
               <span class="badge-illustrative">illustrative</span>
             </div>
             <div class="kpi-val">1,248</div>
-            <div class="kpi-sub">84% Furniture & Electronics</div>
+            <div class="kpi-sub">84% Furniture & Electronics &bull; Explore in Discover &rarr;</div>
           </div>
 
           <div class="kpi-card">
@@ -862,9 +862,38 @@
           </div>
         </div>
 
+        <!-- Catalog Status & Category Filter Bar -->
+        <div class="card" style="margin-bottom: 16px; padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge-algo">Campus Feed</span>
+              <span style="font-size: 0.88rem; font-weight: 700; color: var(--color-text);" id="discover-catalog-counter">
+                Catalog: <strong>1,248 Simulated Campus Listings</strong>
+              </span>
+            </div>
+            <div class="preset-pills" id="discover-category-filters" style="margin: 0;">
+              <button class="preset-pill active" data-category="all">All (1,248)</button>
+              <button class="preset-pill" data-category="furniture">Furniture (412)</button>
+              <button class="preset-pill" data-category="electronics">Electronics (446)</button>
+              <button class="preset-pill" data-category="books">Books (215)</button>
+              <button class="preset-pill" data-category="hobbies">Hobbies & Sports (175)</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Search Results Grid -->
         <div class="results-grid" id="discover-results-container">
           <!-- Cards populated dynamically by app.js -->
+        </div>
+
+        <!-- Pagination / Load More from Catalog -->
+        <div class="load-more-container" id="discover-load-more-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin: 24px 0 10px;">
+          <button class="btn btn-secondary" id="discover-load-more-btn" style="min-width: 240px;">
+            Load More from Catalog (1,248 total)
+          </button>
+          <span style="font-size: 0.76rem; color: var(--color-text-muted);" id="discover-pagination-status">
+            Showing matching listings from 1,248 active campus listings
+          </span>
         </div>
       </section>
 
