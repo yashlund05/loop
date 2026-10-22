@@ -262,7 +262,7 @@
         </button>
 
         <button type="button" class="btn btn-secondary btn-sm" id="header-backend-btn" title="Inspect Backend Datastore & Transactional Mail Outbox" style="display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">
-          <span>📬</span> Backend &amp; Mails (<span id="header-mail-count">3</span>)
+          <span>📬</span> <span class="backend-btn-label">Backend &amp; Mails</span> (<span id="header-mail-count">3</span>)
         </button>
 
         <button class="btn-corrections" id="header-corrections-btn" title="View Active Learning corrections buffer">
@@ -1046,8 +1046,13 @@
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 6px;">Verified Post-Handover Review:</div>
                 <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-bottom: 8px;">Reviews can only be submitted after verified dual-confirmation.</div>
                 
-                <div style="display: flex; gap: 6px; margin-bottom: 8px; font-size: 1.2rem; cursor: pointer;">
-                  <span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span>
+                <div id="handover-stars-wrap" role="radiogroup" aria-label="Rating" style="display: flex; gap: 6px; margin-bottom: 8px; font-size: 1.25rem; cursor: pointer;">
+                  <button type="button" class="star-rating-btn active" data-rating="1" aria-label="1 star" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+                  <button type="button" class="star-rating-btn active" data-rating="2" aria-label="2 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+                  <button type="button" class="star-rating-btn active" data-rating="3" aria-label="3 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+                  <button type="button" class="star-rating-btn active" data-rating="4" aria-label="4 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+                  <button type="button" class="star-rating-btn active" data-rating="5" aria-label="5 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+                  <span id="handover-star-text" style="font-size: 0.82rem; font-weight: 700; color: var(--color-primary); align-self: center; margin-left: 6px;">5.0 / 5.0</span>
                 </div>
                 <button class="btn btn-primary btn-sm" id="submit-review-btn">Publish Verified Review</button>
               </div>

@@ -1,8 +1,8 @@
 /* Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved. */
 
 :root {
-  --color-primary: #059669;
-  --color-primary-hover: #047857;
+  --color-primary: #047857;
+  --color-primary-hover: #065f46;
   --color-primary-light: #ecfdf5;
   --color-primary-border: #a7f3d0;
   --color-bg: #f8fafc;
@@ -30,6 +30,8 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --color-primary-contrast: #ffffff;
 
   --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
@@ -63,6 +65,8 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --color-primary-contrast: #022c22;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -109,10 +113,39 @@ body {
   flex-direction: column;
 }
 
-/* Accessible focus visible */
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+/* Accessible focus visible and focus rings */
+button:focus,
+button:focus-visible,
+a:focus,
+a:focus-visible,
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+[tabindex]:focus,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.25) !important;
+}
+
+[data-theme="dark"] button:focus,
+[data-theme="dark"] button:focus-visible,
+[data-theme="dark"] a:focus,
+[data-theme="dark"] a:focus-visible,
+[data-theme="dark"] input:focus,
+[data-theme="dark"] input:focus-visible,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] select:focus-visible,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] textarea:focus-visible,
+[data-theme="dark"] [tabindex]:focus,
+[data-theme="dark"] [tabindex]:focus-visible {
+  outline: 2px solid #34d399 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.35) !important;
 }
 
 /* Permanent Honesty Banner */
@@ -476,6 +509,14 @@ body {
 }
 
 /* UI Cards */
+.card,
+.split-view > *,
+.grid-2 > *,
+.grid-3 > *,
+.grid-4 > * {
+  min-width: 0;
+}
+
 .card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -809,7 +850,9 @@ body {
 .form-select:focus,
 .form-textarea:focus {
   border-color: var(--color-primary);
-  outline: none;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
 }
 
 .input-help {
@@ -843,7 +886,11 @@ input[type="range"] {
   height: 6px;
   border-radius: var(--radius-full);
   background: var(--color-border);
-  outline: none;
+}
+
+input[type="range"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
 }
 
 /* Fair-deal badges */
@@ -893,7 +940,33 @@ input[type="range"] {
 
 .btn-primary {
   background-color: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-primary-contrast, #ffffff);
+}
+
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .mobile-nav-btn.active,
+[data-theme="dark"] .counter-badge {
+  color: #022c22 !important;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .fair-badge.great {
+  border-color: #166534;
+}
+[data-theme="dark"] .fair-badge.fair {
+  border-color: #075985;
+}
+[data-theme="dark"] .fair-badge.overpriced {
+  border-color: #9a3412;
+}
+
+.item-thumbnail svg rect:first-child {
+  fill: var(--color-bg);
+}
+
+.star-rating-btn.dimmed {
+  opacity: 0.3;
+  filter: grayscale(1);
 }
 
 .btn-primary:hover {
@@ -1412,7 +1485,9 @@ input[type="range"] {
 
 .otp-box:focus {
   border-color: var(--color-primary);
-  outline: none;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
   background-color: var(--color-surface);
 }
 
@@ -1622,25 +1697,119 @@ input[type="range"] {
 
   .mobile-nav-bar {
     display: flex;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .main-content {
     padding: 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .screen-title {
     font-size: 1.25rem;
   }
 
+  .community-pill {
+    display: none;
+  }
+
+  .brand-logo {
+    font-size: 1.15rem;
+    gap: 4px;
+  }
+
+  .brand-logo svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .top-nav {
+    padding: 0 8px;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .top-actions {
+    gap: 4px;
+  }
+
+  #header-backend-btn {
+    padding: 4px 6px;
+    font-size: 0.72rem;
+  }
+
+  #header-backend-btn .backend-btn-label {
+    display: none;
+  }
+
+  .top-actions .btn-corrections {
+    padding: 3px 6px;
+  }
+
   .top-actions .btn-corrections span.label-text {
     display: none;
   }
 
+  .theme-toggle-btn {
+    padding: 3px 6px;
+    font-size: 0.72rem;
+  }
+
+  #theme-toggle-label {
+    font-size: 0;
+  }
+
+  #theme-toggle-label::before {
+    content: "🌓";
+    font-size: 0.85rem;
+  }
+
   .top-actions .user-chip .identifier {
-    max-width: 90px;
+    max-width: 55px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-actions .user-chip {
+    padding: 2px 4px;
+    font-size: 0.72rem;
+  }
+
+  .top-actions .user-chip .identifier {
+    max-width: 42px;
+  }
+
+  .top-actions .user-chip .verify-badge {
+    display: none;
+  }
+
+  .btn-signout {
+    padding: 3px 6px;
+    font-size: 0.72rem;
+  }
+
+  .auth-card {
+    padding: 22px 14px;
+  }
+
+  .otp-box-group {
+    gap: 6px;
+  }
+
+  .otp-box {
+    width: 100%;
+    max-width: 42px;
+    min-width: 0;
+    flex: 1;
+    height: 46px;
+    font-size: 1.25rem;
   }
 }
 
