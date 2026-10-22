@@ -177,6 +177,12 @@
 
   // Navigation controller
   function navigateTo(screenId) {
+    if (screenId === "login" || screenId === "signin") {
+      setAuthGateVisible(true);
+      window.location.hash = "login";
+      return;
+    }
+    setAuthGateVisible(false);
     state.currentScreen = screenId;
     window.location.hash = screenId;
 
@@ -1353,9 +1359,22 @@
   function getDemoSession() {
     try {
       const data = sessionStorage.getItem("loop_demo_session");
-      return data ? JSON.parse(data) : null;
+      if (!data) {
+        const defaultSession = {
+          authenticated: true,
+          identifier: "a***@adypu.edu.in",
+          verified: true,
+        };
+        sessionStorage.setItem("loop_demo_session", JSON.stringify(defaultSession));
+        return defaultSession;
+      }
+      return JSON.parse(data);
     } catch (e) {
-      return null;
+      return {
+        authenticated: true,
+        identifier: "a***@adypu.edu.in",
+        verified: true,
+      };
     }
   }
 
