@@ -9,6 +9,16 @@
 (function () {
   "use strict";
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   // Global platform state
   const state = {
     currentScreen: "overview",
@@ -517,34 +527,250 @@
   // Screen 2: Snap-to-List
   // ==========================================
   function initSnapScreen() {
+    const canvas = document.getElementById("snap-canvas");
+    const scrubBox = document.getElementById("scrubber-draggable-box");
     const scrubToggle = document.getElementById("snap-scrub-toggle");
     const faceBox = document.getElementById("scrub-box-face");
     const phoneBox = document.getElementById("scrub-box-phone");
     const scrubWarning = document.getElementById("snap-scrub-warning");
     const scrubStatusText = document.getElementById("snap-scrub-status-text");
+    const heatmapToggle = document.getElementById("snap-heatmap-toggle");
+    const heatmapOverlay = document.getElementById("snap-heatmap-overlay");
+    const photoContainer = document.getElementById("snap-photo-box");
+
+    // Load real demo photo onto canvas
+    const baseImg = new Image();
+    let imgLoaded = false;
+    baseImg.crossOrigin = "anonymous";
+    baseImg.onload = function () {
+      imgLoaded = true;
+      renderCanvas();
+    };
+    baseImg.onerror = function () {
+      if (baseImg.src.indexOf("assets/images/") !== -1) {
+        baseImg.src = "images/item-01.jpg";
+      }
+    };
+    baseImg.src = "assets/images/item-01.jpg";
+
+    function renderCanvas() {
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const cw = canvas.width;
+      const ch = canvas.height;
+      ctx.clearRect(0, 0, cw, ch);
+
+      if (imgLoaded && baseImg.naturalWidth) {
+        const imgRatio = baseImg.naturalWidth / baseImg.naturalHeight;
+        const canvasRatio = cw / ch;
+        let dw, dh, dx, dy;
+        if (imgRatio > canvasRatio) {
+          dw = cw;
+          dh = cw / imgRatio;
+          dx = 0;
+          dy = (ch - dh) / 2;
+        } else {
+          dh = ch;
+          dw = ch * imgRatio;
+          dx = (cw - dw) / 2;
+          dy = 0;
+        }
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.drawImage(baseImg, dx, dy, dw, dh);
+      } else {
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(0, 0, cw, ch);
+      }
+
+      if (state.snap.scrubbed && scrubBox && photoContainer) {
+        const cRect = photoContainer.getBoundingClientRect();
+        const bRect = scrubBox.getBoundingClientRect();
+        const scaleX = cw / (cRect.width || cw);
+        const scaleY = ch / (cRect.height || ch);
+
+        let bx = Math.round((bRect.left - cRect.left) * scaleX);
+        let by = Math.round((bRect.top - cRect.top) * scaleY);
+        let bw = Math.round(bRect.width * scaleX);
+        let bh = Math.round(bRect.height * scaleY);
+
+        bx = Math.max(0, Math.min(cw - 10, bx));
+        by = Math.max(0, Math.min(ch - 10, by));
+        bw = Math.max(10, Math.min(cw - bx, bw));
+        bh = Math.max(10, Math.min(ch - by, bh));
+
+        if (bw > 0 && bh > 0) {
+          pixelateRegion(ctx, bx, by, bw, bh, 14);
+        }
+      }
+    }
+
+    function pixelateRegion(ctx, x, y, width, height, blockSize) {
+      try {
+        const imgData = ctx.getImageData(x, y, width, height);
+        const d = imgData.data;
+        for (let py = 0; py < height; py += blockSize) {
+          for (let px = 0; px < width; px += blockSize) {
+            let r = 0,
+              g = 0,
+              b = 0,
+              count = 0;
+            const endY = Math.min(py + blockSize, height);
+            const endX = Math.min(px + blockSize, width);
+
+            for (let sy = py; sy < endY; sy++) {
+              for (let sx = px; sx < endX; sx++) {
+                const i = (sy * width + sx) * 4;
+                r += d[i];
+                g += d[i + 1];
+                b += d[i + 2];
+                count++;
+              }
+            }
+
+            if (count > 0) {
+              const avgR = Math.round(r / count);
+              const avgG = Math.round(g / count);
+              const avgB = Math.round(b / count);
+
+              for (let sy = py; sy < endY; sy++) {
+                for (let sx = px; sx < endX; sx++) {
+                  const i = (sy * width + sx) * 4;
+                  d[i] = avgR;
+                  d[i + 1] = avgG;
+                  d[i + 2] = avgB;
+                }
+              }
+            }
+          }
+        }
+        ctx.putImageData(imgData, x, y);
+      } catch (_) {
+        ctx.fillStyle = "rgba(100, 116, 139, 0.95)";
+        ctx.fillRect(x, y, width, height);
+      }
+    }
 
     function applyScrubberUI() {
       if (state.snap.scrubbed) {
-        faceBox.classList.add("blurred");
-        faceBox.querySelector(".scrub-label").textContent = "✓ Face: Blurred";
-        phoneBox.classList.add("blurred");
-        phoneBox.querySelector(".scrub-label").textContent = "✓ Phone: Blurred";
+        if (scrubBox) scrubBox.style.display = "flex";
+        if (faceBox) {
+          faceBox.classList.add("blurred");
+          const lbl = faceBox.querySelector(".scrub-label");
+          if (lbl) lbl.textContent = "✓ Face: Blurred";
+        }
+        if (phoneBox) {
+          phoneBox.classList.add("blurred");
+          const lbl = phoneBox.querySelector(".scrub-label");
+          if (lbl) lbl.textContent = "✓ Phone: Blurred";
+        }
         if (scrubWarning) scrubWarning.style.display = "none";
         if (scrubStatusText) {
-          scrubStatusText.textContent = "2 sensitive regions scrubbed client-side";
+          scrubStatusText.textContent = "Client-side pixelation active (region draggable)";
           scrubStatusText.style.color = "var(--color-success)";
         }
       } else {
-        faceBox.classList.remove("blurred");
-        faceBox.querySelector(".scrub-label").textContent = "⚠️ Face: Exposed";
-        phoneBox.classList.remove("blurred");
-        phoneBox.querySelector(".scrub-label").textContent = "⚠️ Phone: Exposed";
+        if (scrubBox) scrubBox.style.display = "none";
+        if (faceBox) {
+          faceBox.classList.remove("blurred");
+          const lbl = faceBox.querySelector(".scrub-label");
+          if (lbl) lbl.textContent = "⚠️ Face: Exposed";
+        }
+        if (phoneBox) {
+          phoneBox.classList.remove("blurred");
+          const lbl = phoneBox.querySelector(".scrub-label");
+          if (lbl) lbl.textContent = "⚠️ Phone: Exposed";
+        }
         if (scrubWarning) scrubWarning.style.display = "flex";
         if (scrubStatusText) {
-          scrubStatusText.textContent = "Scrubber OFF: Image cannot be published";
+          scrubStatusText.textContent =
+            "Scrubber OFF: Image cannot be published without scrubbing sensitive areas";
           scrubStatusText.style.color = "var(--color-danger)";
         }
       }
+      renderCanvas();
+    }
+
+    // Draggable box pointer events
+    if (scrubBox && photoContainer) {
+      let isDragging = false;
+      let startX = 0,
+        startY = 0;
+      let initialLeft = 0,
+        initialTop = 0;
+
+      scrubBox.addEventListener("pointerdown", (e) => {
+        isDragging = true;
+        try {
+          scrubBox.setPointerCapture(e.pointerId);
+        } catch (_) {}
+        startX = e.clientX;
+        startY = e.clientY;
+        initialLeft = scrubBox.offsetLeft;
+        initialTop = scrubBox.offsetTop;
+        e.preventDefault();
+      });
+
+      const onPointerMove = (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const maxLeft = photoContainer.clientWidth - scrubBox.offsetWidth;
+        const maxTop = photoContainer.clientHeight - scrubBox.offsetHeight;
+
+        const newLeft = Math.max(0, Math.min(maxLeft, initialLeft + dx));
+        const newTop = Math.max(0, Math.min(maxTop, initialTop + dy));
+
+        scrubBox.style.left = `${newLeft}px`;
+        scrubBox.style.top = `${newTop}px`;
+        renderCanvas();
+      };
+
+      const onPointerUp = (e) => {
+        if (isDragging) {
+          isDragging = false;
+          try {
+            scrubBox.releasePointerCapture(e.pointerId);
+          } catch (_) {}
+          renderCanvas();
+        }
+      };
+
+      scrubBox.addEventListener("pointermove", onPointerMove);
+      scrubBox.addEventListener("pointerup", onPointerUp);
+      scrubBox.addEventListener("pointercancel", onPointerUp);
+
+      scrubBox.addEventListener("keydown", (e) => {
+        const step = e.shiftKey ? 20 : 5;
+        let moved = false;
+        let curLeft = scrubBox.offsetLeft;
+        let curTop = scrubBox.offsetTop;
+        const maxLeft = photoContainer.clientWidth - scrubBox.offsetWidth;
+        const maxTop = photoContainer.clientHeight - scrubBox.offsetHeight;
+
+        if (e.key === "ArrowLeft") {
+          curLeft = Math.max(0, curLeft - step);
+          moved = true;
+        } else if (e.key === "ArrowRight") {
+          curLeft = Math.min(maxLeft, curLeft + step);
+          moved = true;
+        } else if (e.key === "ArrowUp") {
+          curTop = Math.max(0, curTop - step);
+          moved = true;
+        } else if (e.key === "ArrowDown") {
+          curTop = Math.min(maxTop, curTop + step);
+          moved = true;
+        }
+
+        if (moved) {
+          e.preventDefault();
+          scrubBox.style.left = `${curLeft}px`;
+          scrubBox.style.top = `${curTop}px`;
+          renderCanvas();
+        }
+      });
     }
 
     if (scrubToggle) {
@@ -556,8 +782,6 @@
     }
 
     // Heatmap toggle
-    const heatmapToggle = document.getElementById("snap-heatmap-toggle");
-    const heatmapOverlay = document.getElementById("snap-heatmap-overlay");
     if (heatmapToggle && heatmapOverlay) {
       heatmapToggle.addEventListener("change", (e) => {
         state.snap.showHeatmap = e.target.checked;
@@ -700,113 +924,49 @@
 
     function renderItemThumbnail(item) {
       if (item.images && item.images.length > 0) {
-        const imgName = item.images[0];
-        const src = imgName.startsWith("images/") ? imgName : "images/" + imgName;
-        return `<img src="${src}" alt="${item.title}" class="item-thumb-img" onerror="this.onerror=null;this.src='${imgName}';">`;
+        const raw = item.images[0];
+        const fileName = raw.includes("/") ? raw.split("/").pop() : raw;
+        const assetSrc = "assets/images/" + fileName;
+        const fallbackSrc = "images/" + fileName;
+        return `<div class="item-thumb-box" style="aspect-ratio: 16/9; width: 100%; overflow: hidden; background-color: var(--color-bg); display: flex; align-items: center; justify-content: center;">
+          <img src="${assetSrc}" alt="${escapeHtml(
+            item.title
+          )}" class="item-thumb-img" loading="lazy" style="width: 100%; height: 100%; object-fit: contain;" onerror="if(this.src.indexOf('assets/images/') !== -1){this.src='${fallbackSrc}';}else{this.onerror=null;this.parentElement.innerHTML=renderNeutralPendingTile('${escapeHtml(
+            item.category || ""
+          )}', false);}">
+        </div>`;
       }
-      return getThumbSvg(item.svgType || getFallbackSvgType(item.category));
+      return renderNeutralPendingTile(item.category, false);
     }
 
-    function getFallbackSvgType(cat) {
-      const c = (cat || "").toLowerCase();
-      if (c.includes("furniture")) return "table";
-      if (c.includes("electronic")) return "calc";
-      if (c.includes("book")) return "book";
-      if (c.includes("hobbi") || c.includes("sport")) return "cycle";
-      return "table";
+    function renderNeutralPendingTile(category, isModal) {
+      const cat = (category || "").toLowerCase();
+      let icon = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`;
+      if (cat.includes("book")) {
+        icon = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+      } else if (cat.includes("electr")) {
+        icon = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>`;
+      } else if (cat.includes("furnit")) {
+        icon = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`;
+      } else if (cat.includes("hobbi") || cat.includes("sport") || cat.includes("recreat")) {
+        icon = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`;
+      }
+
+      return `<div class="neutral-pending-tile ${
+        isModal ? "modal-tile" : ""
+      }" role="img" aria-label="Photo pending for ${escapeHtml(category || "item")}">
+        <div class="pending-icon-wrap" aria-hidden="true">
+          ${icon}
+        </div>
+        <div>
+          <span class="photo-pending-label">Photo pending</span>
+          <span class="photo-pending-sub">${escapeHtml(category || "Standard item")}</span>
+        </div>
+      </div>`;
     }
 
     function getThumbSvg(type) {
-      if (type === "table") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f1f5f9"/>
-          <rect x="25" y="32" width="110" height="10" rx="3" fill="#854d0e"/>
-          <rect x="35" y="42" width="8" height="38" fill="#a16207"/>
-          <rect x="117" y="42" width="8" height="38" fill="#a16207"/>
-          <rect x="75" y="42" width="46" height="20" rx="2" fill="#78350f"/>
-          <circle cx="98" cy="52" r="2.5" fill="#fef08a"/>
-          <path d="M 40 32 L 50 15 L 60 15 L 50 32 Z" fill="#0284c7" opacity="0.8"/>
-        </svg>`;
-      } else if (type === "book") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f1f5f9"/>
-          <rect x="45" y="15" width="70" height="60" rx="4" fill="#0f766e"/>
-          <rect x="48" y="18" width="6" height="54" fill="#14b8a6"/>
-          <line x1="60" y1="28" x2="105" y2="28" stroke="#ffffff" stroke-width="2.5"/>
-          <line x1="60" y1="36" x2="95" y2="36" stroke="#99f6e4" stroke-width="1.5"/>
-          <line x1="60" y1="44" x2="85" y2="44" stroke="#99f6e4" stroke-width="1.5"/>
-        </svg>`;
-      } else if (type === "calc") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f1f5f9"/>
-          <rect x="55" y="10" width="50" height="70" rx="6" fill="#1e293b"/>
-          <rect x="62" y="18" width="36" height="14" rx="2" fill="#84cc16"/>
-          <circle cx="68" cy="42" r="3" fill="#cbd5e1"/>
-          <circle cx="80" cy="42" r="3" fill="#cbd5e1"/>
-          <circle cx="92" cy="42" r="3" fill="#cbd5e1"/>
-          <circle cx="68" cy="54" r="3" fill="#cbd5e1"/>
-          <circle cx="80" cy="54" r="3" fill="#cbd5e1"/>
-          <circle cx="92" cy="54" r="3" fill="#cbd5e1"/>
-          <circle cx="68" cy="66" r="3" fill="#f97316"/>
-          <circle cx="80" cy="66" r="3" fill="#cbd5e1"/>
-          <circle cx="92" cy="66" r="3" fill="#cbd5e1"/>
-        </svg>`;
-      } else if (type === "chair") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f8fafc"/>
-          <path d="M 65 15 C 65 15, 95 15, 95 15 C 98 15, 100 18, 100 22 L 98 48 C 98 52, 95 55, 90 55 L 70 55 C 65 55, 62 52, 62 48 L 60 22 C 60 18, 62 15, 65 15 Z" fill="#334155"/>
-          <rect x="58" y="52" width="44" height="8" rx="3" fill="#1e293b"/>
-          <rect x="77" y="60" width="6" height="16" fill="#64748b"/>
-          <line x1="55" y1="76" x2="105" y2="76" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="58" cy="80" r="3" fill="#1e293b"/>
-          <circle cx="80" cy="80" r="3" fill="#1e293b"/>
-          <circle cx="102" cy="80" r="3" fill="#1e293b"/>
-          <path d="M 54 35 L 54 48 L 60 48" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path d="M 106 35 L 106 48 L 100 48" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        </svg>`;
-      } else if (type === "lamp") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f8fafc"/>
-          <ellipse cx="60" cy="76" rx="20" ry="6" fill="#64748b"/>
-          <path d="M 60 74 Q 60 40 78 30 Q 95 20 102 32" stroke="#475569" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <polygon points="95,22 120,38 105,48" fill="#f59e0b"/>
-          <polygon points="108,44 145,76 115,82 100,48" fill="#fef08a" opacity="0.35"/>
-        </svg>`;
-      } else if (type === "laptop") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f8fafc"/>
-          <rect x="42" y="16" width="76" height="48" rx="3" fill="#1e293b"/>
-          <rect x="46" y="20" width="68" height="40" rx="1" fill="#0284c7"/>
-          <polygon points="34,70 126,70 120,64 40,64" fill="#64748b"/>
-          <line x1="72" y1="67" x2="88" y2="67" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>`;
-      } else if (type === "headphones") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f8fafc"/>
-          <path d="M 50 50 A 30 30 0 0 1 110 50" stroke="#334155" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <rect x="44" y="44" width="14" height="26" rx="6" fill="#059669"/>
-          <rect x="102" y="44" width="14" height="26" rx="6" fill="#059669"/>
-          <rect x="42" y="50" width="4" height="14" rx="2" fill="#10b981"/>
-          <rect x="114" y="50" width="4" height="14" rx="2" fill="#10b981"/>
-        </svg>`;
-      } else if (type === "lab") {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f8fafc"/>
-          <path d="M 60 18 L 80 32 L 100 18 L 115 32 L 105 40 L 100 80 L 60 80 L 55 40 L 45 32 Z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
-          <polygon points="68,18 80,32 92,18" fill="#cbd5e1"/>
-          <line x1="80" y1="32" x2="80" y2="80" stroke="#94a3b8" stroke-width="1.5"/>
-          <circle cx="80" cy="46" r="2" fill="#64748b"/>
-          <circle cx="80" cy="58" r="2" fill="#64748b"/>
-        </svg>`;
-      } else {
-        return `<svg viewBox="0 0 160 90" width="100%" height="100%">
-          <rect width="160" height="90" fill="#f1f5f9"/>
-          <circle cx="50" cy="55" r="18" fill="none" stroke="#334155" stroke-width="4"/>
-          <circle cx="110" cy="55" r="18" fill="none" stroke="#334155" stroke-width="4"/>
-          <polyline points="50,55 75,32 105,32 110,55" fill="none" stroke="#059669" stroke-width="4"/>
-          <line x1="75" y1="32" x2="85" y2="55" stroke="#059669" stroke-width="3"/>
-        </svg>`;
-      }
+      return renderNeutralPendingTile(type, false);
     }
 
     function renderResults() {
@@ -1259,12 +1419,87 @@
       });
     }
 
+    function triggerVisualSimilaritySearch() {
+      if (state.currentScreen !== "discover") {
+        navigateTo("discover");
+      }
+      const visBox = document.getElementById("visual-search-similar-box");
+      const visGrid = document.getElementById("visual-similar-cards-grid");
+      if (!visBox || !visGrid) return;
+
+      visBox.classList.remove("hidden");
+
+      const matches = [
+        { id: "item-01", score: 94 },
+        { id: "item-02", score: 89 },
+        { id: "item-05", score: 76 },
+      ];
+
+      visGrid.innerHTML = matches
+        .map((m) => {
+          const it = (catalogueItems || []).find((c) => c.id === m.id);
+          if (!it) return "";
+          const raw = it.images && it.images.length > 0 ? it.images[0] : "";
+          const fileName = raw.includes("/") ? raw.split("/").pop() : raw;
+          const assetSrc = "assets/images/" + fileName;
+          const fallbackSrc = "images/" + fileName;
+          return `
+            <div class="visual-similar-card" data-id="${
+              it.id
+            }" tabindex="0" role="button" aria-label="Visual match: ${escapeHtml(it.title)}">
+              <span class="visual-similarity-pill">${m.score}% Visual Match</span>
+              <div style="aspect-ratio: 16/9; width: 100%; overflow: hidden; background-color: var(--color-bg); display: flex; align-items: center; justify-content: center;">
+                <img src="${assetSrc}" alt="${escapeHtml(
+                  it.title
+                )}" loading="lazy" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null;this.src='${fallbackSrc}';">
+              </div>
+              <div style="padding: 10px;">
+                <div style="font-weight: 700; font-size: 0.84rem; color: var(--color-text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(
+                  it.title
+                )}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 700; color: var(--color-primary); font-size: 0.88rem;">₹${it.price.toLocaleString(
+                    "en-IN"
+                  )}</span>
+                  <span class="fair-badge ${
+                    it.badgeType || "fair"
+                  }" style="font-size: 0.68rem; padding: 2px 6px;">${
+                    it.badge || "Fair Price"
+                  }</span>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      visGrid.querySelectorAll(".visual-similar-card").forEach((card) => {
+        const id = card.getAttribute("data-id");
+        const found = (catalogueItems || []).find((c) => c.id === id);
+        if (found) {
+          card.addEventListener("click", () => openListingDetailModal(found, card));
+          card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openListingDetailModal(found, card);
+            }
+          });
+        }
+      });
+
+      visBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      showToast("📷 Visual embedding search: 3 preset matches found (cosine similarity ≥ 0.75).");
+    }
+
     if (topImgSearchBtn) {
-      topImgSearchBtn.addEventListener("click", () => {
-        showToast(
-          "📷 Image search simulation: Extracted 512-d CLIP embedding and found 3 visually similar items in Campus."
-        );
-        executeSearch("study table");
+      topImgSearchBtn.addEventListener("click", triggerVisualSimilaritySearch);
+    }
+
+    const btnCloseVisual = document.getElementById("btn-close-visual-search");
+    if (btnCloseVisual) {
+      btnCloseVisual.addEventListener("click", () => {
+        const visBox = document.getElementById("visual-search-similar-box");
+        if (visBox) visBox.classList.add("hidden");
       });
     }
 
@@ -1341,8 +1576,10 @@
     const photoEl = document.getElementById("modal-item-photo");
     if (photoEl) {
       if (item.images && item.images.length > 0) {
-        const imgName = item.images[0];
-        const src = imgName.startsWith("images/") ? imgName : "images/" + imgName;
+        const raw = item.images[0];
+        const fileName = raw.includes("/") ? raw.split("/").pop() : raw;
+        const assetSrc = "assets/images/" + fileName;
+        const fallbackSrc = "images/" + fileName;
         const hotspotsHtml = (item.wearHotspots || [])
           .map(
             (h, i) => `
@@ -1355,14 +1592,19 @@
           )
           .join("");
         photoEl.innerHTML = `
-          <div class="modal-detail-img-wrap">
-            <img src="${src}" alt="${item.title}" class="modal-detail-img" onerror="this.onerror=null;this.src='${imgName}';">
+          <div class="modal-detail-img-wrap" style="aspect-ratio: 16/10; width: 100%; position: relative; overflow: hidden; background-color: var(--color-bg); display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md);">
+            <img src="${assetSrc}" alt="${escapeHtml(
+              item.title
+            )}" class="modal-detail-img" loading="lazy" style="width: 100%; height: 100%; object-fit: contain;" onerror="if(this.src.indexOf('assets/images/') !== -1){this.src='${fallbackSrc}';}else{this.onerror=null;this.parentElement.innerHTML=renderNeutralPendingTile('${escapeHtml(
+              item.category || ""
+            )}', true);}">
             ${hotspotsHtml}
           </div>
         `;
       } else {
-        photoEl.innerHTML = `<div class="modal-detail-img-wrap">${getThumbSvg(
-          item.svgType || getFallbackSvgType(item.category)
+        photoEl.innerHTML = `<div class="modal-detail-img-wrap" style="width: 100%;">${renderNeutralPendingTile(
+          item.category,
+          true
         )}</div>`;
       }
     }
@@ -2493,6 +2735,9 @@
       snapHeatmapToggle.checked = false;
       snapHeatmapToggle.dispatchEvent(new Event("change"));
     }
+
+    const visBox = document.getElementById("visual-search-similar-box");
+    if (visBox) visBox.classList.add("hidden");
 
     // 2. Reset Discover Search and Filters
     state.search.query = "study table under 3000";
