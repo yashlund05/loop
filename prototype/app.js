@@ -271,16 +271,6 @@
         if (target) navigateTo(target);
       });
     });
-
-    // Roadmap phase node clicks
-    document.querySelectorAll(".phase-node").forEach((node) => {
-      node.addEventListener("click", () => {
-        const phaseName = node.querySelector(".phase-name")?.textContent || "";
-        const phaseNum = node.querySelector(".phase-num")?.textContent || "";
-        const phaseStatus = node.querySelector(".phase-status")?.textContent || "";
-        showToast(`${phaseNum}: ${phaseName} (${phaseStatus}) - See docs/ROADMAP.md`);
-      });
-    });
   }
 
   // ==========================================
