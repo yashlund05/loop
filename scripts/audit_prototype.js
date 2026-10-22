@@ -279,7 +279,7 @@ async function runAudit() {
           }
         })()
       `);
-      await wait(100);
+      await wait(350);
 
       const contrastRes = await client.eval(`
         (() => {
@@ -377,7 +377,60 @@ async function runAudit() {
     `);
     console.log("Star rating test:", starTest);
 
-    // 6. State Reset after Sign-Out
+    // 6. Mobile Drawer & Escape Key
+    console.log("\n--- Auditing Mobile Drawer & Escape Key ---");
+    const drawerTest = await client.eval(`
+      (() => {
+        const drawerBtn = document.getElementById('menu-drawer-btn');
+        if (drawerBtn) drawerBtn.click();
+        const sidebar = document.getElementById('app-sidebar');
+        const opened = sidebar && sidebar.classList.contains('drawer-open');
+        // Press Escape
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        const closed = sidebar && !sidebar.classList.contains('drawer-open');
+        return { opened, closed };
+      })()
+    `);
+    console.log("Drawer open & Escape test:", drawerTest);
+
+    // 7. Listing Detail Modal & TreeSHAP Drivers
+    console.log("\n--- Auditing Listing Detail Modal & TreeSHAP Drivers ---");
+    const detailModalTest = await client.eval(`
+      (() => {
+        const brandLogo = document.querySelector('.brand-logo');
+        if (brandLogo) brandLogo.click();
+        const firstCard = document.querySelector('#discover-results-container .item-card');
+        if (!firstCard) return { error: "No card found" };
+        firstCard.click();
+        const modal = document.getElementById('listing-detail-modal');
+        const beforeEscape = modal && !modal.classList.contains('hidden');
+        const modalTitle = document.getElementById('modal-item-title')?.textContent;
+        const modalRange = document.getElementById('modal-range-median')?.textContent;
+        const modalDrivers = document.querySelectorAll('#modal-ai-drivers-list .ai-driver-item').length;
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        const afterEscape = modal && modal.classList.contains('hidden');
+        return { beforeEscape, afterEscape, modalTitle, modalRange, modalDrivers };
+      })()
+    `);
+    console.log("Listing detail modal test:", detailModalTest);
+
+    // 8. Discover Filter Chips Interactivity
+    console.log("\n--- Auditing Discover Filter Chips Interactivity ---");
+    const filterTest = await client.eval(`
+      (() => {
+        const catBtn = document.querySelector('.filter-chip[data-filter="category"][data-val="furniture"]');
+        if (catBtn) catBtn.click();
+        const cardsCount = document.querySelectorAll('#discover-results-container .item-card').length;
+        const badgeText = document.getElementById('filter-active-count-badge')?.textContent;
+        const resetBtn = document.getElementById('btn-reset-filters');
+        if (resetBtn) resetBtn.click();
+        const resetCardsCount = document.querySelectorAll('#discover-results-container .item-card').length;
+        return { cardsCount, badgeText, resetCardsCount };
+      })()
+    `);
+    console.log("Discover filter chips test:", filterTest);
+
+    // 9. State Reset after Sign-Out
     console.log("\n--- Auditing State Reset After Sign-Out ---");
     const resetTest = await client.eval(`
       (() => {
@@ -399,14 +452,14 @@ async function runAudit() {
         const snapPriceAfter = document.getElementById('snap-price-slider').value;
         const discQueryAfter = document.getElementById('discover-search-input').value;
         const swapAAfter = document.getElementById('swap-confirm-btn-a').disabled;
-        const activeScreenAfter = document.getElementById('screen-overview').classList.contains('active');
+        const activeScreenAfter = document.getElementById('screen-discover').classList.contains('active');
 
         return {
           snapTitleClean: snapTitleAfter === "Ergonomic Wooden Study Desk with Drawer",
           snapPriceClean: parseInt(snapPriceAfter) === 2600,
           swapAClean: swapAAfter === false,
           discQueryClean: discQueryAfter === "study table under 3000",
-          overviewActive: activeScreenAfter
+          discoverActive: activeScreenAfter
         };
       })()
     `);
