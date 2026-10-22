@@ -1342,7 +1342,562 @@
   // Screen 10: Admin & Model Health
   // ==========================================
   function initAdminScreen() {
-    // Model health tabs or triggers
+    // Model health telemetry
+  }
+
+  // ==========================================
+  // Authentication & Simulated Sign-In Gate
+  // ==========================================
+  const authFlow = {
+    mode: "signin", // 'signin' or 'create'
+    activeTab: "email", // 'email' or 'phone'
+    pendingIdentifier: null,
+    pendingVerified: false,
+    otpCode: "482916",
+    otpAttempts: 0,
+    otpLockout: false,
+    timerInterval: null,
+    secondsLeft: 30,
+  };
+
+  function getDemoSession() {
+    try {
+      const data = sessionStorage.getItem("loop_demo_session");
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setDemoSession(session) {
+    try {
+      sessionStorage.setItem("loop_demo_session", JSON.stringify(session));
+    } catch (e) {}
+  }
+
+  function clearDemoSession() {
+    try {
+      sessionStorage.removeItem("loop_demo_session");
+    } catch (e) {}
+  }
+
+  function maskEmail(email) {
+    const parts = (email || "").trim().split("@");
+    if (parts.length !== 2) return "u***@campus.internal";
+    const name = parts[0];
+    const domain = parts[1];
+    const firstChar = name.length > 0 ? name[0] : "u";
+    return `${firstChar}***@${domain}`;
+  }
+
+  function maskPhone(phone) {
+    const digits = (phone || "").replace(/\D/g, "");
+    if (digits.length === 10) {
+      return `+91 ${digits.slice(0, 2)}****${digits.slice(-2)}`;
+    }
+    return "+91 98****10";
+  }
+
+  function updateDashboardUserChip(session) {
+    const chipId = document.getElementById("user-chip-id");
+    const chipBadge = document.getElementById("user-chip-badge");
+    if (chipId) {
+      chipId.textContent = session.identifier || "user@demo";
+    }
+    if (chipBadge) {
+      if (session.verified) {
+        chipBadge.className = "verify-badge verified";
+        chipBadge.textContent = "Verified";
+      } else {
+        chipBadge.className = "verify-badge unverified";
+        chipBadge.textContent = "Unverified";
+      }
+    }
+  }
+
+  function showAuthStep(stepName) {
+    const stepLogin = document.getElementById("auth-step-login");
+    const stepCommunity = document.getElementById("auth-step-community");
+    const stepConsent = document.getElementById("auth-step-consent");
+
+    if (stepLogin) stepLogin.style.display = stepName === "login" ? "block" : "none";
+    if (stepCommunity) stepCommunity.style.display = stepName === "community" ? "block" : "none";
+    if (stepConsent) stepConsent.style.display = stepName === "consent" ? "block" : "none";
+  }
+
+  function setAuthGateVisible(isAuthView) {
+    const authView = document.getElementById("auth-view");
+    const dashView = document.getElementById("dashboard-view");
+    if (isAuthView) {
+      if (authView) authView.classList.remove("hidden");
+      if (dashView) dashView.classList.add("hidden");
+      showAuthStep("login");
+    } else {
+      if (authView) authView.classList.add("hidden");
+      if (dashView) dashView.classList.remove("hidden");
+    }
+  }
+
+  function resetAuthForms() {
+    authFlow.mode = "signin";
+    authFlow.pendingIdentifier = null;
+    authFlow.pendingVerified = false;
+    authFlow.otpAttempts = 0;
+    authFlow.otpLockout = false;
+    clearInterval(authFlow.timerInterval);
+
+    // Reset email fields
+    const loginEmail = document.getElementById("login-email");
+    const loginPassword = document.getElementById("login-password");
+    const loginPasswordConfirm = document.getElementById("login-password-confirm");
+    const loginName = document.getElementById("login-name");
+    if (loginEmail) loginEmail.value = "";
+    if (loginPassword) loginPassword.value = "";
+    if (loginPasswordConfirm) loginPasswordConfirm.value = "";
+    if (loginName) loginName.value = "";
+
+    // Reset phone fields
+    const loginPhone = document.getElementById("login-phone");
+    if (loginPhone) {
+      loginPhone.value = "";
+      loginPhone.disabled = false;
+    }
+    const sendOtpBtn = document.getElementById("btn-send-otp");
+    if (sendOtpBtn) sendOtpBtn.disabled = false;
+    const phoneOtpSection = document.getElementById("phone-otp-section");
+    if (phoneOtpSection) phoneOtpSection.style.display = "none";
+    const lockoutAlert = document.getElementById("otp-lockout-alert");
+    if (lockoutAlert) lockoutAlert.style.display = "none";
+
+    const otpBoxes = document.querySelectorAll(".otp-box");
+    otpBoxes.forEach((box) => {
+      box.value = "";
+      box.disabled = false;
+    });
+
+    const verifyOtpBtn = document.getElementById("btn-verify-otp");
+    if (verifyOtpBtn) verifyOtpBtn.disabled = false;
+
+    // Reset community input
+    const communityInput = document.getElementById("community-input");
+    if (communityInput) communityInput.value = "";
+
+    // Reset consent checkbox
+    const consentCb = document.getElementById("consent-checkbox");
+    if (consentCb) consentCb.checked = false;
+    const consentBtn = document.getElementById("btn-consent-continue");
+    if (consentBtn) consentBtn.disabled = true;
+
+    // Clear all error messages
+    document.querySelectorAll(".field-error").forEach((el) => {
+      el.textContent = "";
+      el.classList.remove("visible");
+    });
+
+    // Reset mode UI
+    const groupDisplayName = document.getElementById("group-display-name");
+    const groupConfirmPassword = document.getElementById("group-confirm-password");
+    const btnEmailSubmit = document.getElementById("btn-email-submit");
+    const authModePrompt = document.getElementById("auth-mode-prompt");
+    const btnToggleAuthMode = document.getElementById("btn-toggle-auth-mode");
+    const forgotWrap = document.getElementById("forgot-password-wrap");
+
+    if (groupDisplayName) groupDisplayName.style.display = "none";
+    if (groupConfirmPassword) groupConfirmPassword.style.display = "none";
+    if (btnEmailSubmit) btnEmailSubmit.textContent = "Sign in";
+    if (authModePrompt) authModePrompt.textContent = "Don't have an account?";
+    if (btnToggleAuthMode) btnToggleAuthMode.textContent = "Create account";
+    if (forgotWrap) forgotWrap.style.display = "block";
+  }
+
+  function initAuthGate() {
+    const tabEmail = document.getElementById("tab-email");
+    const tabPhone = document.getElementById("tab-phone");
+    const panelEmail = document.getElementById("panel-email");
+    const panelPhone = document.getElementById("panel-phone");
+
+    function switchAuthTab(targetTab) {
+      authFlow.activeTab = targetTab;
+      if (targetTab === "email") {
+        tabEmail.setAttribute("aria-selected", "true");
+        tabEmail.tabIndex = 0;
+        tabPhone.setAttribute("aria-selected", "false");
+        tabPhone.tabIndex = -1;
+        panelEmail.classList.remove("hidden");
+        panelPhone.classList.add("hidden");
+      } else {
+        tabPhone.setAttribute("aria-selected", "true");
+        tabPhone.tabIndex = 0;
+        tabEmail.setAttribute("aria-selected", "false");
+        tabEmail.tabIndex = -1;
+        panelPhone.classList.remove("hidden");
+        panelEmail.classList.add("hidden");
+      }
+    }
+
+    if (tabEmail && tabPhone) {
+      tabEmail.addEventListener("click", () => switchAuthTab("email"));
+      tabPhone.addEventListener("click", () => switchAuthTab("phone"));
+
+      // Keyboard navigation between tabs
+      [tabEmail, tabPhone].forEach((tab) => {
+        tab.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            const nextTab = tab === tabEmail ? "phone" : "email";
+            switchAuthTab(nextTab);
+            const targetEl = nextTab === "email" ? tabEmail : tabPhone;
+            targetEl.focus();
+          } else if (e.key === "Home") {
+            e.preventDefault();
+            switchAuthTab("email");
+            tabEmail.focus();
+          } else if (e.key === "End") {
+            e.preventDefault();
+            switchAuthTab("phone");
+            tabPhone.focus();
+          }
+        });
+      });
+    }
+
+    // Toggle between Sign In and Create Account
+    const btnToggleAuthMode = document.getElementById("btn-toggle-auth-mode");
+    const groupDisplayName = document.getElementById("group-display-name");
+    const groupConfirmPassword = document.getElementById("group-confirm-password");
+    const btnEmailSubmit = document.getElementById("btn-email-submit");
+    const authModePrompt = document.getElementById("auth-mode-prompt");
+    const forgotWrap = document.getElementById("forgot-password-wrap");
+
+    if (btnToggleAuthMode) {
+      btnToggleAuthMode.addEventListener("click", () => {
+        if (authFlow.mode === "signin") {
+          authFlow.mode = "create";
+          groupDisplayName.style.display = "block";
+          groupConfirmPassword.style.display = "block";
+          btnEmailSubmit.textContent = "Create account";
+          authModePrompt.textContent = "Already have an account?";
+          btnToggleAuthMode.textContent = "Sign in";
+          if (forgotWrap) forgotWrap.style.display = "none";
+        } else {
+          authFlow.mode = "signin";
+          groupDisplayName.style.display = "none";
+          groupConfirmPassword.style.display = "none";
+          btnEmailSubmit.textContent = "Sign in";
+          authModePrompt.textContent = "Don't have an account?";
+          btnToggleAuthMode.textContent = "Create account";
+          if (forgotWrap) forgotWrap.style.display = "block";
+        }
+      });
+    }
+
+    // Password Show/Hide toggle
+    const btnTogglePassword = document.getElementById("btn-toggle-password");
+    const loginPassword = document.getElementById("login-password");
+    const loginPasswordConfirm = document.getElementById("login-password-confirm");
+
+    if (btnTogglePassword && loginPassword) {
+      btnTogglePassword.addEventListener("click", () => {
+        const isPassword = loginPassword.type === "password";
+        loginPassword.type = isPassword ? "text" : "password";
+        if (loginPasswordConfirm) loginPasswordConfirm.type = isPassword ? "text" : "password";
+        btnTogglePassword.textContent = isPassword ? "🙈 Hide" : "👁️ Show";
+        btnTogglePassword.setAttribute(
+          "aria-label",
+          isPassword ? "Hide password" : "Show password"
+        );
+        btnTogglePassword.setAttribute("aria-pressed", isPassword ? "true" : "false");
+      });
+    }
+
+    // Forgot password link
+    const btnForgotPassword = document.getElementById("btn-forgot-password");
+    const forgotNotice = document.getElementById("forgot-password-notice");
+    if (btnForgotPassword && forgotNotice) {
+      btnForgotPassword.addEventListener("click", () => {
+        const emailVal = document.getElementById("login-email").value.trim();
+        forgotNotice.textContent = `✓ Simulated reset link sent${
+          emailVal ? " to " + emailVal : ""
+        }. Check your inbox.`;
+        forgotNotice.classList.add("visible");
+      });
+    }
+
+    // Email Form Submission
+    const formEmail = document.getElementById("form-email-auth");
+    if (formEmail) {
+      formEmail.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const emailInput = document.getElementById("login-email");
+        const passInput = document.getElementById("login-password");
+        const emailErr = document.getElementById("login-email-error");
+        const passErr = document.getElementById("login-password-error");
+        const nameErr = document.getElementById("login-name-error");
+        const confirmErr = document.getElementById("login-confirm-error");
+
+        let isValid = true;
+        emailErr.textContent = "";
+        emailErr.classList.remove("visible");
+        passErr.textContent = "";
+        passErr.classList.remove("visible");
+        if (nameErr) {
+          nameErr.textContent = "";
+          nameErr.classList.remove("visible");
+        }
+        if (confirmErr) {
+          confirmErr.textContent = "";
+          confirmErr.classList.remove("visible");
+        }
+
+        const email = emailInput.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          emailErr.textContent = "Please enter a valid email address (e.g. name@adypu.edu.in).";
+          emailErr.classList.add("visible");
+          isValid = false;
+        }
+
+        const password = passInput.value;
+        if (!password || password.length < 8) {
+          passErr.textContent = "Password must be at least 8 characters.";
+          passErr.classList.add("visible");
+          isValid = false;
+        }
+
+        if (authFlow.mode === "create") {
+          const name = document.getElementById("login-name").value.trim();
+          if (!name) {
+            nameErr.textContent = "Please enter your name.";
+            nameErr.classList.add("visible");
+            isValid = false;
+          }
+
+          const confirmPass = document.getElementById("login-password-confirm").value;
+          if (confirmPass !== password) {
+            confirmErr.textContent = "Passwords do not match.";
+            confirmErr.classList.add("visible");
+            isValid = false;
+          }
+        }
+
+        if (isValid) {
+          authFlow.pendingIdentifier = maskEmail(email);
+          showAuthStep("community");
+        }
+      });
+    }
+
+    // Phone OTP Flow
+    const btnSendOtp = document.getElementById("btn-send-otp");
+    const loginPhone = document.getElementById("login-phone");
+    const phoneErr = document.getElementById("login-phone-error");
+    const phoneOtpSection = document.getElementById("phone-otp-section");
+    const otpTimerText = document.getElementById("otp-timer-text");
+    const btnResendOtp = document.getElementById("btn-resend-otp");
+    const otpBoxes = document.querySelectorAll(".otp-box");
+    const otpErr = document.getElementById("login-otp-error");
+    const btnVerifyOtp = document.getElementById("btn-verify-otp");
+    const otpLockoutAlert = document.getElementById("otp-lockout-alert");
+
+    function startOtpTimer() {
+      clearInterval(authFlow.timerInterval);
+      authFlow.secondsLeft = 30;
+      if (btnResendOtp) btnResendOtp.disabled = true;
+      if (otpTimerText) otpTimerText.textContent = `Resend in ${authFlow.secondsLeft}s`;
+
+      authFlow.timerInterval = setInterval(() => {
+        authFlow.secondsLeft--;
+        if (authFlow.secondsLeft <= 0) {
+          clearInterval(authFlow.timerInterval);
+          if (otpTimerText) otpTimerText.textContent = "You can now resend OTP";
+          if (btnResendOtp && !authFlow.otpLockout) btnResendOtp.disabled = false;
+        } else {
+          if (otpTimerText) otpTimerText.textContent = `Resend in ${authFlow.secondsLeft}s`;
+        }
+      }, 1000);
+    }
+
+    if (btnSendOtp && loginPhone) {
+      btnSendOtp.addEventListener("click", () => {
+        phoneErr.textContent = "";
+        phoneErr.classList.remove("visible");
+
+        const phoneVal = loginPhone.value.trim();
+        if (!/^[6-9]\d{9}$/.test(phoneVal)) {
+          phoneErr.textContent =
+            "Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.";
+          phoneErr.classList.add("visible");
+          return;
+        }
+
+        loginPhone.disabled = true;
+        btnSendOtp.disabled = true;
+        phoneOtpSection.style.display = "block";
+        otpBoxes.forEach((b) => (b.value = ""));
+        if (otpBoxes[0]) otpBoxes[0].focus();
+        startOtpTimer();
+      });
+    }
+
+    // OTP Input Boxes: Auto-advance, backspace navigation, paste support
+    otpBoxes.forEach((box, index) => {
+      box.addEventListener("input", (e) => {
+        const val = e.target.value.replace(/\D/g, "");
+        box.value = val ? val[0] : "";
+        if (box.value && index < otpBoxes.length - 1) {
+          otpBoxes[index + 1].focus();
+        }
+      });
+
+      box.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace") {
+          if (!box.value && index > 0) {
+            otpBoxes[index - 1].focus();
+          }
+        }
+      });
+
+      box.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData("text");
+        const digits = pasted.replace(/\D/g, "").slice(0, 6);
+        digits.split("").forEach((d, idx) => {
+          if (otpBoxes[idx]) otpBoxes[idx].value = d;
+        });
+        const focusIdx = Math.min(digits.length, otpBoxes.length - 1);
+        if (otpBoxes[focusIdx]) otpBoxes[focusIdx].focus();
+      });
+    });
+
+    if (btnResendOtp) {
+      btnResendOtp.addEventListener("click", () => {
+        if (authFlow.otpLockout) return;
+        otpBoxes.forEach((b) => (b.value = ""));
+        otpErr.textContent = "";
+        otpErr.classList.remove("visible");
+        startOtpTimer();
+        if (otpBoxes[0]) otpBoxes[0].focus();
+        showToast("Demo OTP resent: 482916");
+      });
+    }
+
+    // Verify OTP Button
+    if (btnVerifyOtp) {
+      btnVerifyOtp.addEventListener("click", () => {
+        if (authFlow.otpLockout) return;
+
+        otpErr.textContent = "";
+        otpErr.classList.remove("visible");
+
+        let enteredOtp = "";
+        otpBoxes.forEach((b) => (enteredOtp += b.value));
+
+        if (enteredOtp.length !== 6) {
+          otpErr.textContent = "Please enter all 6 digits of the OTP.";
+          otpErr.classList.add("visible");
+          return;
+        }
+
+        if (enteredOtp === authFlow.otpCode) {
+          authFlow.pendingIdentifier = maskPhone(loginPhone.value);
+          clearInterval(authFlow.timerInterval);
+          showAuthStep("community");
+        } else {
+          authFlow.otpAttempts++;
+          if (authFlow.otpAttempts >= 5) {
+            authFlow.otpLockout = true;
+            clearInterval(authFlow.timerInterval);
+            otpBoxes.forEach((b) => (b.disabled = true));
+            btnVerifyOtp.disabled = true;
+            btnResendOtp.disabled = true;
+            if (otpLockoutAlert) otpLockoutAlert.style.display = "block";
+            otpErr.textContent = "";
+            otpErr.classList.remove("visible");
+          } else {
+            otpErr.textContent = `Invalid OTP. Enter demo code 482916. (Attempt ${authFlow.otpAttempts}/5)`;
+            otpErr.classList.add("visible");
+          }
+        }
+      });
+    }
+
+    // Community Step
+    const btnVerifyCommunity = document.getElementById("btn-verify-community");
+    const btnSkipCommunity = document.getElementById("btn-skip-community");
+    const communityInput = document.getElementById("community-input");
+    const communityErr = document.getElementById("community-error");
+
+    if (btnVerifyCommunity) {
+      btnVerifyCommunity.addEventListener("click", () => {
+        const val = (communityInput ? communityInput.value : "").trim().toLowerCase();
+        if (val.endsWith("@adypu.edu.in") || val === "demo-2026") {
+          authFlow.pendingVerified = true;
+          communityErr.textContent = "";
+          communityErr.classList.remove("visible");
+          showToast("✓ Campus community verified! (Verified Badge Earned)");
+          showAuthStep("consent");
+        } else {
+          communityErr.textContent =
+            "Invalid code. Enter demo code DEMO-2026 or an @adypu.edu.in email, or click 'Skip for now'.";
+          communityErr.classList.add("visible");
+        }
+      });
+    }
+
+    if (btnSkipCommunity) {
+      btnSkipCommunity.addEventListener("click", () => {
+        authFlow.pendingVerified = false;
+        communityErr.textContent = "";
+        communityErr.classList.remove("visible");
+        showToast("Community verification skipped (Unverified status).");
+        showAuthStep("consent");
+      });
+    }
+
+    // Consent Step
+    const consentCb = document.getElementById("consent-checkbox");
+    const btnConsentContinue = document.getElementById("btn-consent-continue");
+
+    if (consentCb && btnConsentContinue) {
+      consentCb.addEventListener("change", () => {
+        btnConsentContinue.disabled = !consentCb.checked;
+      });
+
+      btnConsentContinue.addEventListener("click", () => {
+        if (!consentCb.checked) return;
+
+        const session = {
+          authenticated: true,
+          identifier: authFlow.pendingIdentifier || "user@adypu.edu.in",
+          verified: !!authFlow.pendingVerified,
+        };
+
+        setDemoSession(session);
+        updateDashboardUserChip(session);
+        setAuthGateVisible(false);
+        navigateTo("overview");
+        showToast(`Welcome to LOOP, ${session.identifier}!`);
+      });
+    }
+
+    // Dashboard Sign-out Button
+    const btnSignOut = document.getElementById("btn-sign-out");
+    if (btnSignOut) {
+      btnSignOut.addEventListener("click", () => {
+        clearDemoSession();
+        resetAuthForms();
+        setAuthGateVisible(true);
+        showToast("Signed out of demo session.");
+      });
+    }
+
+    // Check existing demo session
+    const existing = getDemoSession();
+    if (existing && existing.authenticated) {
+      updateDashboardUserChip(existing);
+      setAuthGateVisible(false);
+    } else {
+      setAuthGateVisible(true);
+    }
   }
 
   // Helper for cross-screen chat opening
@@ -1396,6 +1951,7 @@
     initSimulatorScreen();
     initImpactScreen();
     initAdminScreen();
+    initAuthGate();
 
     // Check initial hash route
     const hash = window.location.hash.replace("#", "");
