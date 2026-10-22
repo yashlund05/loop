@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2026 Emmanuel George P and Sameer Makani. All rights reserved. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOOP - Hyperlocal Reuse Platform Prototype</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Permanent Honesty Banner on every screen -->
+  <div class="honesty-banner" role="banner" aria-label="Prototype Notice">
+    <span class="badge">Non-Negotiable Notice</span>
+    <span>⚠️ Prototype &mdash; simulated data. No model has been trained or measured. All metrics are illustrative.</span>
+  </div>
+
+  <!-- Top App Navigation -->
+  <header class="top-nav" role="navigation">
+    <div class="brand-section">
+      <a href="#overview" class="brand-logo" aria-label="LOOP Home">
+        <svg viewBox="0 0 28 28" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M 7 14 C 7 9 11 6 15 6 C 19 6 22 9 22 13 C 22 17 19 20 15 20 C 11 20 7 17 7 14 Z"/>
+          <path d="M 4 10 L 7 14 L 11 11"/>
+          <path d="M 24 18 L 21 14 L 17 17"/>
+        </svg>
+        <span>LOOP</span>
+      </a>
+      <span class="community-pill">
+        <span>📍</span> ADYPU Campus Community (Verified)
+      </span>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn-corrections" id="header-corrections-btn" title="View Active Learning corrections buffer">
+        <span class="label-text">Corrections Buffer:</span>
+        <span class="counter-badge" id="nav-corrections-count">42</span>
+      </button>
+
+      <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+        <span id="theme-toggle-label">🌓 Auto</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Top Nav (Horizontal scrollable pills on small viewports) -->
+  <nav class="mobile-nav-bar" aria-label="Mobile Navigation">
+    <button class="mobile-nav-btn active" data-screen="overview">Overview</button>
+    <button class="mobile-nav-btn" data-screen="snap">Snap-to-List</button>
+    <button class="mobile-nav-btn" data-screen="discover">Discover</button>
+    <button class="mobile-nav-btn" data-screen="chat">Chat & Handover</button>
+    <button class="mobile-nav-btn" data-screen="swap">Swap Engine</button>
+    <button class="mobile-nav-btn" data-screen="trust">Trust & Safety</button>
+    <button class="mobile-nav-btn" data-screen="learning">Active Learning</button>
+    <button class="mobile-nav-btn" data-screen="simulator">Simulator & Price-Drop</button>
+    <button class="mobile-nav-btn" data-screen="impact">Impact</button>
+    <button class="mobile-nav-btn" data-screen="admin">Admin & Health</button>
+  </nav>
+
+  <div class="app-layout">
+    <!-- Desktop Left Sidebar -->
+    <aside class="sidebar" role="navigation" aria-label="Main Navigation">
+      <div class="nav-group-title">Platform Screens</div>
+      
+      <button class="nav-item active" data-screen="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Overview</span>
+        <span class="phase-tag">All</span>
+      </button>
+
+      <button class="nav-item" data-screen="snap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        <span>Snap-to-List</span>
+        <span class="phase-tag">P11</span>
+      </button>
+
+      <button class="nav-item" data-screen="discover">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <span>Discover</span>
+        <span class="phase-tag">P12</span>
+      </button>
+
+      <button class="nav-item" data-screen="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Chat & Handover</span>
+        <span class="phase-tag">P13</span>
+      </button>
+
+      <button class="nav-item" data-screen="swap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17 1 21 5 17 9"/>
+          <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+          <polyline points="7 23 3 19 7 15"/>
+          <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+        <span>Swap Engine</span>
+        <span class="phase-tag">P16</span>
+      </button>
+
+      <button class="nav-item" data-screen="trust">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span>Trust & Safety</span>
+        <span class="phase-tag">P13/14</span>
+      </button>
+
+      <button class="nav-item" data-screen="learning">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        <span>Active Learning</span>
+        <span class="phase-tag">P15</span>
+      </button>
+
+      <button class="nav-item" data-screen="simulator">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>Simulator & Drop</span>
+        <span class="phase-tag">P17</span>
+      </button>
+
+      <button class="nav-item" data-screen="impact">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+        <span>Impact</span>
+        <span class="phase-tag">P16</span>
+      </button>
+
+      <button class="nav-item" data-screen="admin">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>Admin & Health</span>
+        <span class="phase-tag">P14</span>
+      </button>
+
+      <div style="margin-top: auto; padding: 12px 10px; font-size: 0.72rem; color: var(--color-text-muted); border-top: 1px solid var(--color-border);">
+        <strong>LOOP Research Prototype</strong><br>
+        ADYPU Pune Pilot Monorepo<br>
+        Offline Static Build
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content" role="main">
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 1: OVERVIEW -->
+      <!-- ============================================================== -->
+      <section id="screen-overview" class="screen-view active">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Platform Architecture & Feature Coverage</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-illustrative">Illustrative Simulation</span>
+              <span>18-Phase Roadmap</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            LOOP is a human-in-the-loop, privacy-preserving, explainable AI marketplace for local campus reuse.
+            Explore all 10 planned subsystems below using simulated data.
+          </p>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid-kpi">
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>Simulated Campus Listings</span>
+              <span class="badge-illustrative">illustrative</span>
+            </div>
+            <div class="kpi-val">1,248</div>
+            <div class="kpi-sub">84% Furniture & Electronics</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>Community Verification</span>
+              <span class="badge-illustrative">illustrative</span>
+            </div>
+            <div class="kpi-val">91.2%</div>
+            <div class="kpi-sub">Campus email / Hostel code</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>Active Swap Cycles</span>
+              <span class="badge-illustrative">illustrative</span>
+            </div>
+            <div class="kpi-val">14 active</div>
+            <div class="kpi-sub">CP-SAT solver, ~38ms</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>CO₂e Avoided (Est.)</span>
+              <span class="badge-algo">Algorithmic</span>
+            </div>
+            <div class="kpi-val">3,420 kg</div>
+            <div class="kpi-sub">LCA emission factor methodology</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>Corrections Buffer</span>
+              <span class="badge-illustrative">live buffer</span>
+            </div>
+            <div class="kpi-val" id="overview-kpi-corrections">42 logged</div>
+            <div class="kpi-sub">Human seller feedback loop</div>
+          </div>
+        </div>
+
+        <!-- 18-Phase Roadmap Strip -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>18-Phase Roadmap Execution Strip</span>
+              <span class="badge-illustrative">Live Status Track</span>
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--color-text-muted);">Click any phase to inspect milestones</span>
+          </div>
+
+          <div class="roadmap-strip-container">
+            <div class="roadmap-strip">
+              <div class="phase-node done" title="Phase 1 Done">
+                <div class="phase-num">Phase 1</div>
+                <div class="phase-name">Foundation & Tooling</div>
+                <div class="phase-status">✓ Completed</div>
+              </div>
+              <div class="phase-node parallel" title="Phase 2 Parallel Track">
+                <div class="phase-num">Phase 2</div>
+                <div class="phase-name">Data Pipeline</div>
+                <div class="phase-status">Parallel Track</div>
+              </div>
+              <div class="phase-node in-progress" title="Phase 3 In Progress">
+                <div class="phase-num">Phase 3</div>
+                <div class="phase-name">Auth & Profiles</div>
+                <div class="phase-status">⏳ In Progress</div>
+              </div>
+              <div class="phase-node planned" title="Phase 4 Planned">
+                <div class="phase-num">Phase 4</div>
+                <div class="phase-name">Listings & Stubs</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 5 Planned">
+                <div class="phase-num">Phase 5</div>
+                <div class="phase-name">Discovery & Filters</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 6 Planned">
+                <div class="phase-num">Phase 6</div>
+                <div class="phase-name">Realtime Chat</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 7 Planned">
+                <div class="phase-num">Phase 7</div>
+                <div class="phase-name">Quality & Scrubber</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 8 Planned">
+                <div class="phase-num">Phase 8</div>
+                <div class="phase-name">Product Recognition</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 9 Planned">
+                <div class="phase-num">Phase 9</div>
+                <div class="phase-name">Condition Grader</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 10 Planned">
+                <div class="phase-num">Phase 10</div>
+                <div class="phase-name">Price Estimator</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 11 Planned">
+                <div class="phase-num">Phase 11</div>
+                <div class="phase-name">M1 Vertical Slice</div>
+                <div class="phase-status">Planned (M1)</div>
+              </div>
+              <div class="phase-node planned" title="Phase 12 Planned">
+                <div class="phase-num">Phase 12</div>
+                <div class="phase-name">Semantic Search</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 13 Planned">
+                <div class="phase-num">Phase 13</div>
+                <div class="phase-name">Handover & Trust</div>
+                <div class="phase-status">Planned (M2)</div>
+              </div>
+              <div class="phase-node planned" title="Phase 14 Planned">
+                <div class="phase-num">Phase 14</div>
+                <div class="phase-name">Fraud & Moderation</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 15 Planned">
+                <div class="phase-num">Phase 15</div>
+                <div class="phase-name">Active Learning</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 16 Planned">
+                <div class="phase-num">Phase 16</div>
+                <div class="phase-name">Swap & Impact</div>
+                <div class="phase-status">Planned (M3)</div>
+              </div>
+              <div class="phase-node planned" title="Phase 17 Planned">
+                <div class="phase-num">Phase 17</div>
+                <div class="phase-name">Sim & Price-Drop</div>
+                <div class="phase-status">Planned</div>
+              </div>
+              <div class="phase-node planned" title="Phase 18 Planned">
+                <div class="phase-num">Phase 18</div>
+                <div class="phase-name">Study & Submission</div>
+                <div class="phase-status">Planned (M4)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Coverage Grid -->
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px;">Interactive Feature Coverage Grid</h3>
+        <div class="feature-grid">
+          
+          <div class="feature-card" data-target-screen="snap">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p0">P0 Must Ship</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 11 (M1)</span>
+              </div>
+              <h4>Snap-to-List & Privacy Scrubber</h4>
+              <p>On-device quality check, client-side face/phone scrubbing, AI attributes, Grad-CAM heatmap, and LightGBM conformal price intervals.</p>
+            </div>
+            <div class="feature-card-btn">Open Snap-to-List &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="discover">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p0">P0 Must Ship</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 12</span>
+              </div>
+              <h4>Multilingual Semantic Search</h4>
+              <p>Hinglish concept mapping ("mez" &rarr; table), price-ceiling parser ("under 3000"), and comparison with Postgres full-text search baseline.</p>
+            </div>
+            <div class="feature-card-btn">Open Discover &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="chat">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p0">P0</span>
+                <span class="badge-p1">P1</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 6 & 13</span>
+              </div>
+              <h4>Chat, Safety & Verified Handover</h4>
+              <p>Keyword scam detector, negotiation counter-offer helper, dual-confirm OTP/QR handover, and review gating.</p>
+            </div>
+            <div class="feature-card-btn">Open Chat & Handover &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="swap">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p1">P1</span>
+                <span class="badge-algo">Algorithmic, not ML</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 16</span>
+              </div>
+              <h4>Multi-Party Swap Engine</h4>
+              <p>Cycle enumeration and CP-SAT integer optimization for 2-way and 3-way circular exchanges. All parties must confirm.</p>
+            </div>
+            <div class="feature-card-btn">Open Swap Engine &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="trust">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p1">P1</span>
+                <span class="badge-algo">Algorithmic, not ML</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 13 & 14</span>
+              </div>
+              <h4>Trust Score & Moderation Queue</h4>
+              <p>Live formula-based trust calculator with breakdown, plus 3 AI-flagged violations (duplicate image, price anomaly, scam text) and audit log.</p>
+            </div>
+            <div class="feature-card-btn">Open Trust & Safety &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="learning">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p1">P1</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 15</span>
+              </div>
+              <h4>Active Learning Loop</h4>
+              <p>Accuracy-vs-corrections curves comparing random, uncertainty, and correction streams. Candidate retraining with frozen test set promotion gating.</p>
+            </div>
+            <div class="feature-card-btn">Open Active Learning &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="simulator">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p1">P1</span>
+                <span class="badge-p2">P2</span>
+                <span class="badge-algo">Algorithmic</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 17</span>
+              </div>
+              <h4>Marketplace Simulator & Price-Drop</h4>
+              <p>Agent-based scale simulator (100 to 10k users) for solve times, plus a hazard-based price drop card with 15% per-step cap and floor.</p>
+            </div>
+            <div class="feature-card-btn">Open Simulator & Price-Drop &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="impact">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p1">P1</span>
+                <span class="badge-algo">Algorithmic</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 16</span>
+              </div>
+              <h4>Ecological Impact Dashboard</h4>
+              <p>Avoided CO₂ and e-waste per category with ranges, sensitivity analysis, and documented lifecycle assessment citations.</p>
+            </div>
+            <div class="feature-card-btn">Open Impact Dashboard &rarr;</div>
+          </div>
+
+          <div class="feature-card" data-target-screen="admin">
+            <div class="feature-card-top">
+              <div class="feature-badges">
+                <span class="badge-p1">P1</span>
+                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Phase 14 & 7</span>
+              </div>
+              <h4>Admin Oversight & Model Health</h4>
+              <p>Active model version matrix, confidence distribution histogram with cutoff threshold, drift indicator, and on-device vs server latency benchmarks.</p>
+            </div>
+            <div class="feature-card-btn">Open Admin & Health &rarr;</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 2: SNAP-TO-LIST -->
+      <!-- ============================================================== -->
+      <section id="screen-snap" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Snap-to-List (AI Drafting & Scrubber)</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p0">Phase 11: M1 Slice</span>
+              <span class="badge-illustrative">Simulated Inference</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Upload photo &rarr; on-device quality check &rarr; client-side privacy scrubber &rarr; AI category, condition & Grad-CAM &rarr; conformal price interval.
+            All outputs are editable and fed into active learning.
+          </p>
+        </div>
+
+        <div class="split-view">
+          <!-- Left Column: Photo, Scrubber, Quality, Heatmap -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>Photo & Visual Safeguards</span>
+                  <span class="badge-algo">On-Device Inference</span>
+                </h3>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer;">
+                  <input type="checkbox" id="snap-scrub-toggle" checked>
+                  <strong>Privacy Scrubber</strong>
+                </label>
+              </div>
+
+              <!-- Photo preview box with inline SVG illustration -->
+              <div class="photo-container" id="snap-photo-box">
+                <svg class="photo-svg" viewBox="0 0 400 300">
+                  <defs>
+                    <!-- Heatmap gradient -->
+                    <radialGradient id="gradcam-hotspot" cx="65%" cy="50%" r="35%">
+                      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.8"/>
+                      <stop offset="45%" stop-color="#eab308" stop-opacity="0.6"/>
+                      <stop offset="75%" stop-color="#22c55e" stop-opacity="0.3"/>
+                      <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+                    </radialGradient>
+                  </defs>
+
+                  <!-- Background wall & room -->
+                  <rect width="400" height="300" fill="#cbd5e1"/>
+                  <rect x="0" y="210" width="400" height="90" fill="#94a3b8"/>
+
+                  <!-- Background human in room (Consented actor simulation) -->
+                  <g transform="translate(70, 70)">
+                    <circle cx="20" cy="20" r="16" fill="#fbcfe8"/>
+                    <path d="M 0 55 C 0 35 40 35 40 55 Z" fill="#64748b"/>
+                  </g>
+
+                  <!-- Sticky note with phone number on wall -->
+                  <g transform="translate(140, 90)">
+                    <rect x="0" y="0" width="60" height="35" rx="2" fill="#fef08a"/>
+                    <text x="5" y="16" font-size="7" fill="#713f12" font-family="monospace">Hostel B</text>
+                    <text x="5" y="26" font-size="7" fill="#713f12" font-family="monospace">98765-XXXXX</text>
+                  </g>
+
+                  <!-- Desk Item (The listing target) -->
+                  <g transform="translate(110, 140)">
+                    <!-- Table top with visible edge wear -->
+                    <rect x="0" y="20" width="220" height="18" rx="3" fill="#854d0e"/>
+                    <!-- Scratch wear line on table edge -->
+                    <path d="M 120 28 L 170 29 L 185 27" stroke="#451a03" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="160" cy="28" r="3" fill="#3f1a04"/>
+
+                    <!-- Legs -->
+                    <rect x="15" y="38" width="12" height="75" fill="#a16207"/>
+                    <rect x="195" y="38" width="12" height="75" fill="#a16207"/>
+
+                    <!-- Drawer unit on right -->
+                    <rect x="135" y="38" width="70" height="50" rx="2" fill="#78350f"/>
+                    <line x1="140" y1="62" x2="200" y2="62" stroke="#451a03" stroke-width="1.5"/>
+                    <circle cx="170" cy="50" r="3" fill="#fef08a"/>
+                    <circle cx="170" cy="74" r="3" fill="#fef08a"/>
+
+                    <!-- Desk Lamp -->
+                    <path d="M 30 20 L 45 -20 L 65 -15" stroke="#475569" stroke-width="4" fill="none"/>
+                    <polygon points="58,-28 78,-10 65,-5" fill="#0284c7"/>
+                  </g>
+
+                  <!-- Heatmap Overlay SVG Path -->
+                  <rect id="snap-heatmap-overlay" class="heatmap-overlay hidden" x="220" y="150" width="120" height="60" rx="8" fill="url(#gradcam-hotspot)" />
+                </svg>
+
+                <!-- Scrubber Bounding Box: Face -->
+                <div id="scrub-box-face" class="scrub-box blurred" style="top: 22%; left: 18%; width: 50px; height: 50px;">
+                  <span class="scrub-label">✓ Face: Blurred</span>
+                </div>
+
+                <!-- Scrubber Bounding Box: Phone Number -->
+                <div id="scrub-box-phone" class="scrub-box blurred" style="top: 29%; left: 34%; width: 70px; height: 38px;">
+                  <span class="scrub-label">✓ Phone: Blurred</span>
+                </div>
+              </div>
+
+              <!-- Scrubber Status & Warning -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 0.8rem;">
+                <span id="snap-scrub-status-text" style="font-weight: 600; color: var(--color-success);">2 sensitive regions scrubbed client-side</span>
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                  <input type="checkbox" id="snap-heatmap-toggle">
+                  <span>Show Grad-CAM Heatmap</span>
+                </label>
+              </div>
+
+              <div id="snap-scrub-warning" style="display: none; background-color: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger); padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.78rem; margin-top: 10px;">
+                ⚠️ <strong>Server Safeguard /scrub-verify:</strong> Photos containing unblurred faces or contact information are strictly blocked from publication (PRD §5.2).
+              </div>
+
+              <!-- On-Device Quality Check Result -->
+              <div style="margin-top: 16px; border-top: 1px solid var(--color-border); padding-top: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 0.82rem; font-weight: 700;">On-Device Quality Check</span>
+                  <span class="badge-algo">MobileNetV3-Small ONNX</span>
+                </div>
+                <div class="quality-meter-grid">
+                  <div class="quality-stat-pill">
+                    <div class="stat-label">Sharpness (Laplacian Var)</div>
+                    <div class="stat-val" style="color: var(--color-success);">Good (184 &gt; 100)</div>
+                  </div>
+                  <div class="quality-stat-pill">
+                    <div class="stat-label">Luminance / Lighting</div>
+                    <div class="stat-val" style="color: var(--color-success);">Optimal (142 / 255)</div>
+                  </div>
+                  <div class="quality-stat-pill">
+                    <div class="stat-label">Background Clutter</div>
+                    <div class="stat-val">Low (Clean context)</div>
+                  </div>
+                  <div class="quality-stat-pill">
+                    <div class="stat-label">Inference Latency</div>
+                    <div class="stat-val" style="color: var(--color-primary);">32 ms (on-device WASM)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Grad-CAM explanation caption -->
+              <p style="font-size: 0.74rem; color: var(--color-text-muted); margin-top: 10px; line-height: 1.35;">
+                <strong>Grad-CAM Note:</strong> Warm colors highlight detected edge wear and table scratches. Limitation: internal or structural damage cannot be detected from photos. Grade is editable.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right Column: AI Extracted Fields & Pricing Intelligence -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>AI Predictions & Editable Fields</span>
+                  <span class="badge-illustrative">Human-in-the-Loop</span>
+                </h3>
+                <span style="font-size: 0.74rem; color: var(--color-text-muted);">Edits log to active learning</span>
+              </div>
+
+              <!-- Editable Title -->
+              <div class="form-group">
+                <label for="snap-title">Draft Title (AI Suggestion)</label>
+                <input type="text" id="snap-title" class="form-input" value="Ergonomic Wooden Study Desk with Drawer">
+              </div>
+
+              <!-- Category & Subtype -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label for="snap-category">Category (Conf: 94.2%)</label>
+                  <select id="snap-category" class="form-select">
+                    <option value="furniture" selected>Furniture</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="books">Books</option>
+                    <option value="hobbies">Hobbies & Recreation</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="snap-subtype">Subtype (Conf: 88.7%)</label>
+                  <input type="text" id="snap-subtype" class="form-input" value="Study Desk">
+                </div>
+              </div>
+
+              <!-- Brand & Condition -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label for="snap-brand">Brand / Model Suggestion</label>
+                  <input type="text" id="snap-brand" class="form-input" value="IKEA Micke (Extracted via vision & OCR)">
+                </div>
+                <div class="form-group">
+                  <label for="snap-condition">Condition Grade (Conf: 84.1%)</label>
+                  <select id="snap-condition" class="form-select">
+                    <option value="like_new">Like New</option>
+                    <option value="good" selected>Good (Minor wear)</option>
+                    <option value="fair">Fair (Visible scuffs)</option>
+                    <option value="poor">Poor (Needs repair)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Pricing Guidance Card (LightGBM Conformal) -->
+              <div style="background-color: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 14px; margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span style="font-size: 0.82rem; font-weight: 700;">Price Intelligence (Quantile & Conformal)</span>
+                  <span class="badge-algo">LightGBM &bull; 80% Coverage</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                  <div>
+                    <div style="font-size: 0.72rem; color: var(--color-text-muted);">Estimated Conformal Range</div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: var(--color-text);">₹2,200 &mdash; ₹3,400</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 0.72rem; color: var(--color-text-muted);">Likely Median</div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);">₹2,800</div>
+                  </div>
+                </div>
+
+                <!-- Top 3 SHAP reasons -->
+                <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-bottom: 12px; background: var(--color-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                  <strong>Top-3 Value Drivers (SHAP Explanation):</strong>
+                  <ul style="margin-left: 16px; margin-top: 4px; line-height: 1.3;">
+                    <li>+₹450: Solid engineered wood structure & drawer utility</li>
+                    <li>-₹300: Minor surface edge wear detected in condition grade</li>
+                    <li>+₹250: High semester-start campus demand for study tables</li>
+                  </ul>
+                </div>
+
+                <!-- Asking Price Slider & Dynamic Fair-Deal Badge -->
+                <div class="slider-group">
+                  <div class="slider-header">
+                    <span>Your Asking Price</span>
+                    <span class="slider-value" id="snap-price-display">₹2,600</span>
+                  </div>
+                  <input type="range" id="snap-price-slider" min="1000" max="5000" step="50" value="2600">
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 600;">Fair-Deal Badge:</span>
+                  <span id="snap-fair-badge" class="fair-badge fair">🔵 Fair Price &bull; Within 80% conformal range</span>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display: flex; gap: 10px; margin-top: 18px;">
+                <button class="btn btn-primary" id="snap-confirm-btn" style="flex: 2;">Confirm & Publish Listing</button>
+                <button class="btn btn-secondary" id="snap-reset-btn" style="flex: 1;">Reset Draft</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 3: DISCOVER & SEARCH -->
+      <!-- ============================================================== -->
+      <section id="screen-discover" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Multilingual Discovery & Search</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p0">Phase 12</span>
+              <span class="badge-algo">pgvector + SQL Parsing</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Test semantic multilingual search (English + Hinglish vocabulary like "mez" for table), price-ceiling extraction ("under 3000"),
+            and compare against the Postgres full-text keyword baseline.
+          </p>
+        </div>
+
+        <!-- Search Controls -->
+        <div class="card">
+          <div class="search-controls">
+            <div class="search-input-wrapper">
+              <input type="text" id="discover-search-input" class="form-input" placeholder="Search items, categories, or e.g. 'mez under 2500'..." value="study table under 3000">
+              <button class="btn btn-primary" id="discover-search-btn">Search</button>
+              <button class="btn btn-secondary" id="discover-img-search-btn" title="Simulate search by visual similarity">📷 Search by Image</button>
+              <button class="btn btn-secondary" id="discover-save-search-btn" title="Save this search and receive alerts">🔔 Save Alert</button>
+            </div>
+
+            <!-- Mode selector -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.8rem; font-weight: 600;">Search Engine Mode:</span>
+                <div class="mode-toggle-group">
+                  <button class="mode-toggle-btn active" id="search-mode-semantic">✨ Semantic Search (pgvector 384-d)</button>
+                  <button class="mode-toggle-btn" id="search-mode-fts">Lexical Baseline (Postgres FTS)</button>
+                </div>
+              </div>
+
+              <!-- Quick query presets -->
+              <div class="preset-pills">
+                <span style="font-size: 0.74rem; font-weight: 600; color: var(--color-text-muted);">Try Presets:</span>
+                <button class="preset-pill" data-query="study table under 3000">study table under 3000</button>
+                <button class="preset-pill" data-query="mez under 2500" style="font-weight: 700; color: var(--color-primary);">mez under 2500 (Hinglish)</button>
+                <button class="preset-pill" data-query="clrs algorithms book">clrs algorithms book</button>
+                <button class="preset-pill" data-query="scientific calculator">scientific calculator</button>
+                <button class="preset-pill" data-query="cycle under 4000">cycle under 4000</button>
+              </div>
+            </div>
+
+            <!-- Query Interpretation Banner -->
+            <div id="discover-query-explanation"></div>
+          </div>
+        </div>
+
+        <!-- Search Results Grid -->
+        <div class="results-grid" id="discover-results-container">
+          <!-- Cards populated dynamically by app.js -->
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 4: CHAT & HANDOVER -->
+      <!-- ============================================================== -->
+      <section id="screen-chat" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">In-App Chat, Safety & Verified Handover</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p0">Phase 6 & 13</span>
+              <span class="badge-algo">Dual OTP Confirmation</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Realtime messaging with proactive scam-word warnings (advance/gpay/whatsapp), negotiation helper, and safe meetup handover via OTP/QR.
+            Reviews are gated exclusively on confirmed handover.
+          </p>
+        </div>
+
+        <div class="split-view">
+          <!-- Left: Chat Thread & Scam Trigger -->
+          <div>
+            <div class="chat-container">
+              <!-- Chat Header -->
+              <div class="chat-header">
+                <div>
+                  <h4 style="font-size: 0.92rem; font-weight: 700;" id="chat-listing-title">Ergonomic Wooden Study Desk (₹2,600)</h4>
+                  <span style="font-size: 0.74rem; color: var(--color-text-muted);">Seller: Priya S. (Verified Student &bull; Trust: 88/100)</span>
+                </div>
+                <span class="fair-badge fair">Active Chat</span>
+              </div>
+
+              <!-- Scam Warning Banner (Hidden by default, triggered on keywords) -->
+              <div class="scam-warning-banner" id="chat-scam-banner" style="display: none;">
+                <span>⚠️</span>
+                <span><strong>Security Alert:</strong> Potential off-platform payment or advance request detected. Keep all transactions in LOOP safe handover. Never transfer advance funds via GPay/UPI.</span>
+              </div>
+
+              <!-- Message History -->
+              <div class="chat-messages" id="chat-messages-box">
+                <div class="chat-bubble buyer">
+                  <div>Hi! Is this desk still available at the hostel?</div>
+                  <span class="bubble-meta">Buyer (Aarav) &bull; 10:14 AM</span>
+                </div>
+                <div class="chat-bubble seller">
+                  <div>Yes, still available! Pick up from Hostel Block B.</div>
+                  <span class="bubble-meta">Seller (Priya) &bull; 10:16 AM</span>
+                </div>
+                <div class="chat-bubble buyer">
+                  <div>Would you take ₹2,000 for it today?</div>
+                  <span class="bubble-meta">Buyer (Aarav) &bull; 10:18 AM</span>
+                </div>
+              </div>
+
+              <!-- Negotiation Helper Prompt (Rule-based) -->
+              <div style="background-color: var(--color-bg); padding: 8px 12px; border-top: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                  <strong>Negotiation Helper (Algorithmic, not ML):</strong> Buyer offered ₹2,000. Suggested counter: ₹2,400.
+                </div>
+                <button class="btn btn-secondary btn-sm" id="chat-counter-offer-btn">Send Counter ₹2,400</button>
+              </div>
+
+              <!-- Chat Input Bar -->
+              <div class="chat-input-bar">
+                <input type="text" id="chat-input-text" class="form-input" placeholder="Type a message (or try typing 'gpay' or 'advance')...">
+                <button class="btn btn-primary" id="chat-send-btn">Send</button>
+              </div>
+            </div>
+
+            <!-- Quick scam test simulation triggers -->
+            <div style="margin-top: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 600;">Simulate Scammer Messages:</span>
+              <button class="btn btn-secondary btn-sm scam-test-pill" data-msg="Can I pay ₹500 advance on GPay to reserve?">"Pay advance on GPay"</button>
+              <button class="btn btn-secondary btn-sm scam-test-pill" data-msg="Message me on WhatsApp 98765-XXXXX">"Message on WhatsApp"</button>
+              <button class="btn btn-secondary btn-sm scam-test-pill" data-msg="Send money, I will courier the item">"Courier payment link"</button>
+            </div>
+          </div>
+
+          <!-- Right: Safe Handover & Review Gating -->
+          <div>
+            <div class="handover-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>Safe Handover Verification</span>
+                  <span class="badge-p0">Phase 13</span>
+                </h3>
+              </div>
+
+              <div style="font-size: 0.8rem; margin-bottom: 12px;">
+                <strong>Suggested Campus Public Meetup:</strong>
+                <div style="background: var(--color-bg); padding: 8px 10px; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-top: 4px;">
+                  📍 <strong>Campus Central Library Gate</strong> (Public Zone &bull; CCTV Monitored &bull; Well-Lit)
+                </div>
+              </div>
+
+              <!-- Generated QR & OTP Pattern -->
+              <div style="text-align: center;">
+                <div class="qr-box">
+                  <svg viewBox="0 0 100 100" width="100%" height="100%">
+                    <rect width="100" height="100" fill="#ffffff"/>
+                    <!-- QR corner position markers -->
+                    <rect x="10" y="10" width="25" height="25" fill="#0f172a"/>
+                    <rect x="15" y="15" width="15" height="15" fill="#ffffff"/>
+                    <rect x="18" y="18" width="9" height="9" fill="#0f172a"/>
+
+                    <rect x="65" y="10" width="25" height="25" fill="#0f172a"/>
+                    <rect x="70" y="15" width="15" height="15" fill="#ffffff"/>
+                    <rect x="73" y="18" width="9" height="9" fill="#0f172a"/>
+
+                    <rect x="10" y="65" width="25" height="25" fill="#0f172a"/>
+                    <rect x="15" y="70" width="15" height="15" fill="#ffffff"/>
+                    <rect x="18" y="73" width="9" height="9" fill="#0f172a"/>
+
+                    <!-- QR data dots -->
+                    <rect x="42" y="15" width="6" height="6" fill="#0f172a"/>
+                    <rect x="52" y="25" width="6" height="6" fill="#0f172a"/>
+                    <rect x="45" y="45" width="10" height="10" fill="#059669"/>
+                    <rect x="65" y="55" width="6" height="6" fill="#0f172a"/>
+                    <rect x="75" y="75" width="6" height="6" fill="#0f172a"/>
+                    <rect x="50" y="80" width="6" height="6" fill="#0f172a"/>
+                    <rect x="25" y="45" width="6" height="6" fill="#0f172a"/>
+                  </svg>
+                </div>
+
+                <div style="font-size: 0.74rem; color: var(--color-text-muted);">4-Digit Handover Verification OTP</div>
+                <div class="otp-display">7 4 9 2</div>
+                <div style="font-size: 0.7rem; color: var(--color-text-muted);">Valid for 30 minutes at meetup point</div>
+              </div>
+
+              <!-- Both-sides confirmation buttons -->
+              <div style="margin-top: 14px; border-top: 1px solid var(--color-border); padding-top: 14px;">
+                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">Dual-Party Confirmation (Requires Both):</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                  <button class="btn btn-secondary btn-sm" id="handover-buyer-confirm-btn">Buyer Confirm Item Received</button>
+                  <button class="btn btn-secondary btn-sm" id="handover-seller-confirm-btn">Seller Confirm Handover</button>
+                </div>
+                <div id="handover-status-text" style="font-size: 0.78rem; text-align: center; margin-top: 8px; color: var(--color-text-muted);">
+                  Waiting for both parties to confirm at meetup (0/2 confirmed)
+                </div>
+              </div>
+
+              <!-- Post-handover review card (Gated) -->
+              <div id="handover-review-card" style="display: none; margin-top: 14px; border-top: 1px solid var(--color-border); padding-top: 14px;">
+                <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 6px;">Verified Post-Handover Review:</div>
+                <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-bottom: 8px;">Reviews can only be submitted after verified dual-confirmation.</div>
+                
+                <div style="display: flex; gap: 6px; margin-bottom: 8px; font-size: 1.2rem; cursor: pointer;">
+                  <span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span>
+                </div>
+                <button class="btn btn-primary btn-sm" id="submit-review-btn">Publish Verified Review</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 5: SWAP ENGINE -->
+      <!-- ============================================================== -->
+      <section id="screen-swap" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Multi-Party Circular Swap Engine</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p1">Phase 16</span>
+              <span class="badge-algo">Algorithmic, not ML</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Graph cycle enumeration and OR-Tools CP-SAT integer optimization. Matches 2-party and 3-party mutual interest cycles where each user gives one item and receives one.
+            Every party must confirm for the swap to lock.
+          </p>
+        </div>
+
+        <!-- 3 Fake Users with Haves and Wants -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>Candidate Pool (Haves & Wants)</span>
+              <span class="badge-algo">Discrete Optimization</span>
+            </h3>
+            <button class="btn btn-primary" id="swap-solve-btn">⚡ Find Exchange Cycles</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+            <div style="background: var(--color-bg); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+              <div style="font-weight: 700; font-size: 0.88rem;">User A: Aarav S.</div>
+              <div style="font-size: 0.76rem; color: var(--color-text-muted);">Hostel Quad 1 &bull; Trust: 92/100</div>
+              <div style="margin-top: 8px; font-size: 0.8rem;">
+                <div>📦 <strong>Haves:</strong> Casio FX-991EX (~₹1,200)</div>
+                <div>🎯 <strong>Wants:</strong> LED Study Lamp (~₹1,000)</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="swap-confirm-btn-a" style="margin-top: 10px; width: 100%;">Confirm Trade (Aarav)</button>
+            </div>
+
+            <div style="background: var(--color-bg); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+              <div style="font-weight: 700; font-size: 0.88rem;">User B: Priya M.</div>
+              <div style="font-size: 0.76rem; color: var(--color-text-muted);">Hostel Block B &bull; Trust: 88/100</div>
+              <div style="margin-top: 8px; font-size: 0.8rem;">
+                <div>📦 <strong>Haves:</strong> LED Study Lamp (~₹1,000)</div>
+                <div>🎯 <strong>Wants:</strong> CLRS Algorithms Book (~₹1,150)</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="swap-confirm-btn-b" style="margin-top: 10px; width: 100%;">Confirm Trade (Priya)</button>
+            </div>
+
+            <div style="background: var(--color-bg); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+              <div style="font-weight: 700; font-size: 0.88rem;">User C: Rohan K.</div>
+              <div style="font-size: 0.76rem; color: var(--color-text-muted);">Society Tower 3 &bull; Trust: 84/100</div>
+              <div style="margin-top: 8px; font-size: 0.8rem;">
+                <div>📦 <strong>Haves:</strong> CLRS Algorithms Book (~₹1,150)</div>
+                <div>🎯 <strong>Wants:</strong> Scientific Calculator (~₹1,200)</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="swap-confirm-btn-c" style="margin-top: 10px; width: 100%;">Confirm Trade (Rohan)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Swap Diagram SVG Box -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>3-Party Exchange Cycle Topology</span>
+              <span id="swap-status-badge" class="fair-badge fair">Ready to solve</span>
+            </h3>
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Tolerance constraint: Value disparity &le; 15%</span>
+          </div>
+
+          <div class="swap-diagram-box" id="swap-diagram-container">
+            <div style="text-align: center; color: var(--color-text-muted); padding: 20px;">
+              <p style="font-weight: 600;">Click "Find Exchange Cycles" above to solve candidate cycles via CP-SAT.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 6: TRUST & SAFETY -->
+      <!-- ============================================================== -->
+      <section id="screen-trust" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Trust Score Calculator & Moderation Queue</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p1">Phase 13 & 14</span>
+              <span class="badge-algo">Algorithmic, not ML</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Rule-based trust score computed dynamically from verification, completed trades (log scale), response time, and Bayesian rating.
+            Moderation queue surfaces AI anomaly flags with human-in-the-loop decisions and an immutable audit log.
+          </p>
+        </div>
+
+        <!-- Section 1: Trust Score Calculator -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>Interactive Trust Score Calculator (ML_SPEC §8)</span>
+              <span class="badge-algo">Formula: T = 100 &times; (0.25&middot;V + 0.30&middot;ln(1+trades)/ln(51) + 0.15&middot;R + 0.30&middot;rating/5)</span>
+            </h3>
+            <span id="trust-tier-badge" class="fair-badge great">🌟 Campus Champion</span>
+          </div>
+
+          <div class="split-view">
+            <div>
+              <!-- Verified status -->
+              <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; background: var(--color-bg); padding: 10px 14px; border-radius: var(--radius-md);">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.84rem;">Community Verification (V)</div>
+                  <div style="font-size: 0.72rem; color: var(--color-text-muted);">Verified college domain or hostel code (+25 pts)</div>
+                </div>
+                <input type="checkbox" id="trust-slider-verified" checked style="width: 18px; height: 18px; accent-color: var(--color-primary);">
+              </div>
+
+              <!-- Completed trades -->
+              <div class="slider-group" style="margin-top: 12px;">
+                <div class="slider-header">
+                  <span>Completed Trades (0 to 50, Logarithmic)</span>
+                  <span class="slider-value" id="trust-trades-val">14</span>
+                </div>
+                <input type="range" id="trust-slider-trades" min="0" max="50" value="14">
+              </div>
+
+              <!-- Response time score -->
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>Response Time Score (R: &lt;15 min = 1.0)</span>
+                  <span class="slider-value" id="trust-response-val">85%</span>
+                </div>
+                <input type="range" id="trust-slider-response" min="0" max="1" step="0.05" value="0.85">
+              </div>
+
+              <!-- Bayesian Star Rating -->
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>Bayesian Star Rating (1.0 to 5.0)</span>
+                  <span class="slider-value" id="trust-rating-val">4.6</span>
+                </div>
+                <input type="range" id="trust-slider-rating" min="1.0" max="5.0" step="0.1" value="4.6">
+              </div>
+            </div>
+
+            <!-- Score Breakdown Display -->
+            <div style="background: var(--color-bg); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="font-size: 0.8rem; color: var(--color-text-muted);">Composite Trust Score</div>
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <span style="font-size: 2.8rem; font-weight: 800; color: var(--color-primary);" id="trust-total-score">82</span>
+                  <span style="font-size: 1.2rem; color: var(--color-text-muted);">/ 100</span>
+                </div>
+              </div>
+
+              <div style="margin-top: 10px; font-size: 0.78rem;">
+                <strong>Component Contribution Breakdown:</strong>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px;">
+                  <div style="background: var(--color-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                    Verification (0.25): <strong id="trust-pts-verified">+25.0 pts</strong>
+                  </div>
+                  <div style="background: var(--color-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                    Trades (0.30 log): <strong id="trust-pts-trades">+20.6 pts</strong>
+                  </div>
+                  <div style="background: var(--color-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                    Response (0.15): <strong id="trust-pts-response">+12.8 pts</strong>
+                  </div>
+                  <div style="background: var(--color-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                    Rating (0.30): <strong id="trust-pts-rating">+27.6 pts</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 8px;">
+                Note: Score recomputes automatically after each completed trade handover. Anti-review rings protected by handover gating.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Moderation Queue -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>AI Moderation Queue (3 Sample Flags)</span>
+              <span class="badge-p1">Phase 14</span>
+            </h3>
+            <span style="font-size: 0.76rem; color: var(--color-text-muted);">Human Moderator Decides &bull; All Actions Audited</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            
+            <!-- Flag 1: Duplicate Image -->
+            <div class="mod-flag-card" data-flag-id="flag-101" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge-p0">Flag #101</span>
+                    <strong style="font-size: 0.92rem;">MacBook Air M1 256GB</strong>
+                    <span style="font-size: 0.75rem; color: var(--color-text-muted);">Seller: @freshman_deals</span>
+                  </div>
+                  <p style="font-size: 0.8rem; margin-top: 4px;">
+                    <strong>Reason:</strong> Perceptual Hash match (Hamming distance 2) and CLIP cosine similarity 0.94 vs existing listing #1082 by @campus_tech.
+                  </p>
+                  <p style="font-size: 0.74rem; color: var(--color-text-muted);">Evidence: Image matches 98.4% of existing listing in Hostel A. Possible stolen photo.</p>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-secondary btn-sm mod-action-btn" data-action="Dismissed">Dismiss</button>
+                  <button class="btn btn-danger btn-sm mod-action-btn" data-action="Removed Listing">Remove Listing</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flag 2: Price Anomaly -->
+            <div class="mod-flag-card" data-flag-id="flag-102" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge-p1">Flag #102</span>
+                    <strong style="font-size: 0.92rem;">Apple Magic Mouse 2</strong>
+                    <span style="font-size: 0.75rem; color: var(--color-text-muted);">Seller: @quick_seller</span>
+                  </div>
+                  <p style="font-size: 0.8rem; margin-top: 4px;">
+                    <strong>Reason:</strong> Price anomaly: Listed at ₹150 (&lt; 0.4 &times; predicted low of ₹1,800; residual z-score -3.4).
+                  </p>
+                  <p style="font-size: 0.74rem; color: var(--color-text-muted);">Evidence: Price is 91% below market median. Flagged for potential bait-and-switch.</p>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-secondary btn-sm mod-action-btn" data-action="Dismissed">Dismiss</button>
+                  <button class="btn btn-danger btn-sm mod-action-btn" data-action="Price Adjusted">Force Review</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flag 3: Scam Text -->
+            <div class="mod-flag-card" data-flag-id="flag-103" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge-p0">Flag #103</span>
+                    <strong style="font-size: 0.92rem;">Sony WH-1000XM4 Headphones</strong>
+                    <span style="font-size: 0.75rem; color: var(--color-text-muted);">Seller: @audio_guy</span>
+                  </div>
+                  <p style="font-size: 0.8rem; margin-top: 4px;">
+                    <strong>Reason:</strong> Scam text pattern detected by classifier (Confidence: 0.94).
+                  </p>
+                  <p style="font-size: 0.74rem; color: var(--color-text-muted);">Evidence: Message text: "Send ₹500 advance via GPay to 98765-XXXXX before pickup, will courier."</p>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-secondary btn-sm mod-action-btn" data-action="Dismissed">Dismiss</button>
+                  <button class="btn btn-danger btn-sm mod-action-btn" data-action="User Suspended">Suspend User</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Section 3: Live Audit Log -->
+          <div style="margin-top: 20px; border-top: 1px solid var(--color-border); padding-top: 14px;">
+            <div style="font-weight: 700; font-size: 0.86rem; margin-bottom: 6px;">Audit Log (Immutable Record of Actions)</div>
+            <div style="overflow-x: auto;">
+              <table class="audit-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Target Flag</th>
+                    <th>Reason / Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="moderation-audit-tbody">
+                  <tr>
+                    <td>09:30 AM</td>
+                    <td>Mod-System</td>
+                    <td><span class="fair-badge fair">Auto-Flagged</span></td>
+                    <td>Flag #101 (MacBook Air)</td>
+                    <td>phash distance &le; 2</td>
+                  </tr>
+                  <tr>
+                    <td>09:32 AM</td>
+                    <td>Mod-System</td>
+                    <td><span class="fair-badge fair">Auto-Flagged</span></td>
+                    <td>Flag #102 (Magic Mouse)</td>
+                    <td>Residual z-score &lt; -3.0</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 7: ACTIVE LEARNING LOOP -->
+      <!-- ============================================================== -->
+      <section id="screen-learning" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Active Learning Loop (Human-in-the-Loop)</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p1">Phase 15</span>
+              <span class="badge-illustrative">Simulated Corrections</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Saves seller edits to category, condition, and price as labelled training examples. Candidate models are evaluated on a frozen test set
+            and promoted only if they beat the active baseline without class regression.
+          </p>
+        </div>
+
+        <div class="split-view">
+          <!-- Left: Accuracy vs Corrections SVG Curves -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>Accuracy vs Corrections (3 Strategies)</span>
+                  <span class="badge-illustrative">Illustrative Curves</span>
+                </h3>
+              </div>
+
+              <!-- Inline SVG Chart -->
+              <div style="width: 100%; aspect-ratio: 16 / 10; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px;">
+                <svg viewBox="0 0 420 250" width="100%" height="100%">
+                  <!-- Grid lines -->
+                  <line x1="40" y1="20" x2="400" y2="20" stroke="var(--color-border)" stroke-width="1" stroke-dasharray="3,3"/>
+                  <line x1="40" y1="70" x2="400" y2="70" stroke="var(--color-border)" stroke-width="1" stroke-dasharray="3,3"/>
+                  <line x1="40" y1="120" x2="400" y2="120" stroke="var(--color-border)" stroke-width="1" stroke-dasharray="3,3"/>
+                  <line x1="40" y1="170" x2="400" y2="170" stroke="var(--color-border)" stroke-width="1" stroke-dasharray="3,3"/>
+                  <line x1="40" y1="210" x2="400" y2="210" stroke="var(--color-divider)" stroke-width="1.5"/>
+
+                  <!-- Y-Axis labels -->
+                  <text x="32" y="24" font-size="9" fill="var(--color-text-muted)" text-anchor="end">92%</text>
+                  <text x="32" y="74" font-size="9" fill="var(--color-text-muted)" text-anchor="end">84%</text>
+                  <text x="32" y="124" font-size="9" fill="var(--color-text-muted)" text-anchor="end">76%</text>
+                  <text x="32" y="174" font-size="9" fill="var(--color-text-muted)" text-anchor="end">68%</text>
+                  <text x="32" y="214" font-size="9" fill="var(--color-text-muted)" text-anchor="end">60%</text>
+
+                  <!-- X-Axis labels -->
+                  <text x="40" y="226" font-size="9" fill="var(--color-text-muted)" text-anchor="middle">0</text>
+                  <text x="130" y="226" font-size="9" fill="var(--color-text-muted)" text-anchor="middle">100</text>
+                  <text x="220" y="226" font-size="9" fill="var(--color-text-muted)" text-anchor="middle">200</text>
+                  <text x="310" y="226" font-size="9" fill="var(--color-text-muted)" text-anchor="middle">300</text>
+                  <text x="400" y="226" font-size="9" fill="var(--color-text-muted)" text-anchor="middle">400 corrections</text>
+
+                  <!-- Curve 1: Correction Stream (Green, steep) -->
+                  <path d="M 40 210 Q 120 70 220 50 T 400 38" fill="none" stroke="#059669" stroke-width="3"/>
+                  <circle cx="220" cy="50" r="4" fill="#059669"/>
+                  <text x="225" y="44" font-size="9" font-weight="700" fill="#059669">Correction Stream (89%)</text>
+
+                  <!-- Curve 2: Uncertainty Sampling (Blue) -->
+                  <path d="M 40 210 Q 140 110 240 85 T 400 68" fill="none" stroke="#0284c7" stroke-width="2.5"/>
+                  <circle cx="240" cy="85" r="3.5" fill="#0284c7"/>
+                  <text x="245" y="80" font-size="8.5" font-weight="600" fill="#0284c7">Uncertainty (84%)</text>
+
+                  <!-- Curve 3: Random Sampling Baseline (Gray dashed) -->
+                  <path d="M 40 210 Q 180 160 280 135 T 400 120" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="5,4"/>
+                  <circle cx="280" cy="135" r="3" fill="#64748b"/>
+                  <text x="285" y="130" font-size="8.5" fill="#64748b">Random Baseline (77%)</text>
+                </svg>
+              </div>
+
+              <p style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 8px;">
+                <strong>Illustrative Caption:</strong> Accuracy curves based on simulated seller corrections. No model has been trained or measured.
+                The seller correction stream prioritizes mispredicted items directly from human users.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Retraining Workflow & Gated Promotion -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>Retraining & Gated Promotion</span>
+                  <span class="badge-algo">Frozen Test Manifest</span>
+                </h3>
+                <span id="learning-active-model-badge" class="fair-badge great">v1.1.0 (86.1% Acc)</span>
+              </div>
+
+              <div style="background: var(--color-bg); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 0.76rem; color: var(--color-text-muted);">Verified Seller Corrections Buffer</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary);" id="learning-corrections-count">42</div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" id="learning-add-corrections-btn">+5 Simulated Edits</button>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 4px;">
+                  Anti-poisoning filter: Verified user &bull; Trades &ge; 1 &bull; Ask price within 3&times; MAD.
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer;">
+                  <input type="checkbox" id="learning-simulate-noise">
+                  <span>Simulate Low-Performing Candidate (Triggers Rejection Gate)</span>
+                </label>
+              </div>
+
+              <button class="btn btn-primary" id="learning-retrain-btn" style="width: 100%;">Run Candidate Retraining Simulation</button>
+
+              <div id="learning-retrain-status" style="margin-top: 14px;">
+                <div style="font-size: 0.78rem; color: var(--color-text-muted); text-align: center; padding: 10px;">
+                  Click above to run candidate fine-tuning and evaluation against the frozen test set (300 items).
+                </div>
+              </div>
+
+              <!-- Retraining criteria box -->
+              <div style="margin-top: 14px; border-top: 1px solid var(--color-border); padding-top: 10px; font-size: 0.74rem; color: var(--color-text-muted);">
+                <strong>Promotion Rule:</strong> Candidate must exceed active model accuracy on frozen test set by &ge; 0.5% with zero class-wise degradation &gt; 2%.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 8: SIMULATOR & PRICE-DROP -->
+      <!-- ============================================================== -->
+      <section id="screen-simulator" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Marketplace Simulator & Price-Drop Heuristic</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p1">Phase 17</span>
+              <span class="badge-algo">Algorithmic, not ML</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Agent-based discrete-event marketplace simulation (100 to 10k users) evaluating solve times and fraud rates,
+            paired with a dynamic price-drop card with a 15% per-step cap and protected floor.
+          </p>
+        </div>
+
+        <div class="split-view">
+          <!-- Section 1: Marketplace Simulator -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>Marketplace Simulator (sim/)</span>
+                  <span class="badge-illustrative">Synthetic Simulation</span>
+                </h3>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>Simulated Active Campus Users</span>
+                  <span class="slider-value" id="sim-users-display">2,500</span>
+                </div>
+                <input type="range" id="sim-users-slider" min="100" max="10000" step="100" value="2500">
+              </div>
+
+              <div class="quality-meter-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="quality-stat-pill">
+                  <div class="stat-label">Simulated Listings</div>
+                  <div class="stat-val" id="sim-metric-listings">3,125</div>
+                </div>
+                <div class="quality-stat-pill">
+                  <div class="stat-label">Swap Match Rate</div>
+                  <div class="stat-val" id="sim-metric-swap-rate" style="color: var(--color-primary);">33.7%</div>
+                </div>
+                <div class="quality-stat-pill">
+                  <div class="stat-label">CP-SAT Graph Solve Time</div>
+                  <div class="stat-val" id="sim-metric-solve-time" style="color: var(--color-info);">93 ms</div>
+                </div>
+                <div class="quality-stat-pill">
+                  <div class="stat-label">Scammer Detection Precision</div>
+                  <div class="stat-val" id="sim-metric-fraud">93.4%</div>
+                </div>
+              </div>
+
+              <p style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 12px; line-height: 1.35;">
+                <strong>Synthetic Data Notice:</strong> Generated via discrete-event agent modeling in <code>sim/</code>. Evaluates 2-way vs 3-way swap scale bottlenecks
+                and CP-SAT graph solve times under increasing community density.
+              </p>
+            </div>
+          </div>
+
+          <!-- Section 2: Dynamic Price-Drop Card -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>Dynamic Price-Drop Suggestions</span>
+                  <span class="badge-algo">Hazard Heuristic (P2)</span>
+                </h3>
+                <span class="badge-p2">Max 15% / step</span>
+              </div>
+
+              <!-- Interactive age and views sliders -->
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>Listing Age without Offer</span>
+                  <span class="slider-value" id="price-drop-age-val">8 days</span>
+                </div>
+                <input type="range" id="price-drop-age-slider" min="1" max="21" value="8">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>Listing Views</span>
+                  <span class="slider-value" id="price-drop-views-val">46</span>
+                </div>
+                <input type="range" id="price-drop-views-slider" min="0" max="150" value="46">
+              </div>
+
+              <!-- Dynamic advice card -->
+              <div id="price-drop-advice-box"></div>
+
+              <button class="btn btn-primary" id="price-drop-apply-btn" style="width: 100%; margin-top: 12px;">Apply Suggested Price Drop</button>
+
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 10px;">
+                <strong>Rule Constraints:</strong> Trigger only if age &ge; 7 days with zero offers. Suggests up to 15% reduction per step,
+                strictly respecting the category price floor (₹1,800).
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 9: IMPACT DASHBOARD -->
+      <!-- ============================================================== -->
+      <section id="screen-impact" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Ecological Impact Estimator</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p1">Phase 16</span>
+              <span class="badge-algo">Algorithmic Lifecycle Assessment</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Algorithmic estimates of avoided carbon emissions (CO₂e) and diverted e-waste across campus categories,
+            using cited lifecycle assessment emission factors with documented sensitivity analysis.
+          </p>
+        </div>
+
+        <!-- Campus totals -->
+        <div class="grid-kpi">
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>Total CO₂e Avoided</span>
+              <span class="badge-illustrative">illustrative</span>
+            </div>
+            <div class="kpi-val" id="impact-total-co2">3,420 kg eq</div>
+            <div class="kpi-sub" id="impact-co2-equiv">Equivalent to ~14,193 km driven in a petrol car.</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>E-Waste Diverted</span>
+              <span class="badge-illustrative">illustrative</span>
+            </div>
+            <div class="kpi-val" id="impact-total-ewaste">482 kg</div>
+            <div class="kpi-sub">Diverted from municipal electronic waste streams.</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>Campus Items Reused</span>
+              <span class="badge-illustrative">illustrative</span>
+            </div>
+            <div class="kpi-val">842 items</div>
+            <div class="kpi-sub">Electronics, Furniture, Books & Hobbies</div>
+          </div>
+        </div>
+
+        <!-- Sensitivity Analysis Toggle -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>Sensitivity Analysis: New Purchase Replacement Coefficient</span>
+              <span class="badge-algo">Sensitivity Check</span>
+            </h3>
+            <div class="preset-pills">
+              <button class="preset-pill impact-coeff-pill" data-coeff="0.5">0.5 (Conservative)</button>
+              <button class="preset-pill impact-coeff-pill active" data-coeff="0.8">0.8 (Standard Baseline)</button>
+              <button class="preset-pill impact-coeff-pill" data-coeff="1.0">1.0 (Full Replacement)</button>
+            </div>
+          </div>
+
+          <!-- Impact breakdown table & SVG bar chart -->
+          <div class="split-view">
+            <div>
+              <div style="font-weight: 700; font-size: 0.88rem; margin-bottom: 8px;">Avoided Impact by Category (LCA Factors)</div>
+              <div style="overflow-x: auto;">
+                <table class="audit-table">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>CO₂e / Item Range</th>
+                      <th>E-Waste / Item</th>
+                      <th>Items Reused</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Electronics</strong></td>
+                      <td>18 &mdash; 45 kg eq</td>
+                      <td>1.2 kg</td>
+                      <td>284</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Furniture</strong></td>
+                      <td>25 &mdash; 60 kg eq</td>
+                      <td>0.0 kg (8.5 kg wood)</td>
+                      <td>212</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Books & Academic</strong></td>
+                      <td>1.5 &mdash; 3.2 kg eq</td>
+                      <td>0.0 kg (0.4 kg paper)</td>
+                      <td>246</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Hobbies & Recreation</strong></td>
+                      <td>5 &mdash; 18 kg eq</td>
+                      <td>0.6 kg</td>
+                      <td>100</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- SVG Bar Comparison -->
+            <div>
+              <div style="font-weight: 700; font-size: 0.88rem; margin-bottom: 8px;">CO₂e Contribution Distribution</div>
+              <div style="width: 100%; aspect-ratio: 16 / 9; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px;">
+                <svg viewBox="0 0 320 160" width="100%" height="100%">
+                  <!-- Electronics bar -->
+                  <text x="10" y="30" font-size="9" fill="var(--color-text)" font-weight="600">Electronics (44%)</text>
+                  <rect x="110" y="20" width="180" height="14" rx="3" fill="#059669"/>
+                  
+                  <!-- Furniture bar -->
+                  <text x="10" y="65" font-size="9" fill="var(--color-text)" font-weight="600">Furniture (38%)</text>
+                  <rect x="110" y="55" width="155" height="14" rx="3" fill="#10b981"/>
+
+                  <!-- Books bar -->
+                  <text x="10" y="100" font-size="9" fill="var(--color-text)" font-weight="600">Books (6%)</text>
+                  <rect x="110" y="90" width="25" height="14" rx="3" fill="#34d399"/>
+
+                  <!-- Hobbies bar -->
+                  <text x="10" y="135" font-size="9" fill="var(--color-text)" font-weight="600">Hobbies (12%)</text>
+                  <rect x="110" y="125" width="50" height="14" rx="3" fill="#6ee7b7"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Method & Citation notes -->
+          <div style="margin-top: 14px; border-top: 1px solid var(--color-border); padding-top: 10px; font-size: 0.74rem; color: var(--color-text-muted);">
+            <strong>LCA Methodology & Citations:</strong> Factors derived from DEFRA 2024 UK GHG Conversion Factors, Apple Environmental Product Reports (for laptops/phones),
+            and Central Pollution Control Board (CPCB) India E-Waste guidelines. Reused items extend useful lifecycle by an assumed 1.8 years.
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- SCREEN 10: ADMIN & MODEL HEALTH -->
+      <!-- ============================================================== -->
+      <section id="screen-admin" class="screen-view">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h1 class="screen-title">Admin Telemetry & Model Health</h1>
+            <span class="screen-meta-badge">
+              <span class="badge-p1">Phase 14 & 7</span>
+              <span class="badge-algo">Telemetry & Latency</span>
+            </span>
+          </div>
+          <p class="screen-desc">
+            Production telemetry tracking deployed model versions, confidence score distribution with threshold cutoff,
+            covariate data drift indicators, and on-device WASM vs server inference benchmarks.
+          </p>
+        </div>
+
+        <!-- Model Versions Table -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>Deployed Model Registry</span>
+              <span class="badge-algo">ONNX Runtime</span>
+            </h3>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="audit-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Model / Backbone</th>
+                  <th>Version</th>
+                  <th>Test Metric (Frozen)</th>
+                  <th>Baseline</th>
+                  <th>Serving Target</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Product Recognition</strong></td>
+                  <td>CLIP ViT-B/32 + Linear Probe</td>
+                  <td><span class="fair-badge fair">v1.2.0</span></td>
+                  <td>88.4% Top-1 Acc (illustrative)</td>
+                  <td>CLIP Zero-Shot (74.2%)</td>
+                  <td>FastAPI ONNX CPU</td>
+                </tr>
+                <tr>
+                  <td><strong>Condition Grader</strong></td>
+                  <td>ResNet-18 CORAL Ordinal</td>
+                  <td><span class="fair-badge fair">v1.1.0</span></td>
+                  <td>0.81 QWK (illustrative)</td>
+                  <td>Plain CNN (0.69)</td>
+                  <td>FastAPI ONNX CPU</td>
+                </tr>
+                <tr>
+                  <td><strong>Price Estimator</strong></td>
+                  <td>LightGBM Quantile + Conformal</td>
+                  <td><span class="fair-badge fair">v1.0.4</span></td>
+                  <td>79.2% Interval Cov (80% target)</td>
+                  <td>Category Median</td>
+                  <td>FastAPI Python</td>
+                </tr>
+                <tr>
+                  <td><strong>Photo Scrubber</strong></td>
+                  <td>BlazeFace + YOLOX-Nano</td>
+                  <td><span class="fair-badge fair">v1.0.2</span></td>
+                  <td>96.2% Sensitive Recall (illustrative)</td>
+                  <td>Haar Cascades</td>
+                  <td>Browser WASM Worker</td>
+                </tr>
+                <tr>
+                  <td><strong>Scam Text Detector</strong></td>
+                  <td>TF-IDF + Logistic Regression</td>
+                  <td><span class="fair-badge fair">v1.1.0</span></td>
+                  <td>0.91 F1 Score (illustrative)</td>
+                  <td>Keyword Regex</td>
+                  <td>FastAPI Python</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="split-view">
+          <!-- Confidence Distribution Histogram -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>Confidence Score Distribution</span>
+                  <span class="badge-illustrative">1,000 Inferences</span>
+                </h3>
+              </div>
+
+              <!-- SVG Histogram -->
+              <div style="width: 100%; aspect-ratio: 16 / 10; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px;">
+                <svg viewBox="0 0 320 180" width="100%" height="100%">
+                  <!-- Axes -->
+                  <line x1="30" y1="150" x2="300" y2="150" stroke="var(--color-divider)" stroke-width="1.5"/>
+                  
+                  <!-- Histogram bins (0.0 to 1.0) -->
+                  <rect x="35" y="145" width="22" height="5" fill="#94a3b8"/>
+                  <rect x="62" y="140" width="22" height="10" fill="#94a3b8"/>
+                  <rect x="89" y="132" width="22" height="18" fill="#94a3b8"/>
+                  <rect x="116" y="120" width="22" height="30" fill="#94a3b8"/>
+                  <rect x="143" y="105" width="22" height="45" fill="#94a3b8"/>
+                  <rect x="170" y="85" width="22" height="65" fill="#94a3b8"/>
+                  <rect x="197" y="60" width="22" height="90" fill="#94a3b8"/>
+                  <rect x="224" y="35" width="22" height="115" fill="#059669"/>
+                  <rect x="251" y="20" width="22" height="130" fill="#059669"/>
+                  <rect x="278" y="45" width="22" height="105" fill="#059669"/>
+
+                  <!-- Cutoff Threshold Line at T_cat = 0.75 -->
+                  <line x1="220" y1="15" x2="220" y2="150" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,3"/>
+                  <text x="215" y="25" font-size="8.5" fill="#ef4444" font-weight="700" text-anchor="end">Threshold T_cat = 0.75</text>
+
+                  <text x="120" y="165" font-size="8.5" fill="#ef4444" text-anchor="middle">&larr; User Confirmation Required</text>
+                  <text x="260" y="165" font-size="8.5" fill="#059669" text-anchor="middle">Auto-Accepted &rarr;</text>
+                </svg>
+              </div>
+
+              <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-top: 8px;">
+                Predictions below threshold 0.75 trigger mandatory human-in-the-loop review (PRD §5.2).
+              </div>
+            </div>
+          </div>
+
+          <!-- On-Device vs Server Latency Comparison -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span>On-Device vs Server Latency (Phase 7 Experiment)</span>
+                  <span class="badge-algo">WASM vs Cloud CPU</span>
+                </h3>
+              </div>
+
+              <!-- Latency comparison table -->
+              <div style="overflow-x: auto;">
+                <table class="audit-table">
+                  <thead>
+                    <tr>
+                      <th>Pipeline Step</th>
+                      <th>Phone (WASM)</th>
+                      <th>Server (Cloud)</th>
+                      <th>Bandwidth Saved</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Photo Quality Check</td>
+                      <td><strong>32 ms</strong></td>
+                      <td>280 ms (incl network)</td>
+                      <td>100% (Pre-upload)</td>
+                    </tr>
+                    <tr>
+                      <td>Face/Phone Scrubber</td>
+                      <td><strong>45 ms</strong></td>
+                      <td>380 ms (incl network)</td>
+                      <td>Raw image never sent</td>
+                    </tr>
+                    <tr>
+                      <td>Product Recognition</td>
+                      <td>- (Client too heavy)</td>
+                      <td><strong>110 ms</strong></td>
+                      <td>Clean scrubbed JPEG</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="background: var(--color-bg); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-top: 14px; font-size: 0.76rem;">
+                <strong>Architectural Finding:</strong> On-device WASM inference for quality and scrubbing eliminates server bandwidth costs and guarantees privacy
+                by ensuring that unscrubbed raw photos never leave the student's mobile browser.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
