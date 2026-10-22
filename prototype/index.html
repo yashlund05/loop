@@ -15,33 +15,262 @@
     <span>⚠️ Prototype &mdash; simulated data. No model has been trained or measured. All metrics are illustrative.</span>
   </div>
 
-  <!-- Top App Navigation -->
-  <header class="top-nav" role="navigation">
-    <div class="brand-section">
-      <a href="#overview" class="brand-logo" aria-label="LOOP Home">
-        <svg viewBox="0 0 28 28" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M 7 14 C 7 9 11 6 15 6 C 19 6 22 9 22 13 C 22 17 19 20 15 20 C 11 20 7 17 7 14 Z"/>
-          <path d="M 4 10 L 7 14 L 11 11"/>
-          <path d="M 24 18 L 21 14 L 17 17"/>
-        </svg>
-        <span>LOOP</span>
-      </a>
-      <span class="community-pill">
-        <span>📍</span> ADYPU Campus Community (Verified)
-      </span>
-    </div>
+  <!-- Auth Gate Container (Shown when no demo session exists) -->
+  <main id="auth-view" aria-label="Sign In Portal">
+    <div class="auth-card">
+      <!-- Auth Step 1: Login / Sign Up -->
+      <section id="auth-step-login" aria-labelledby="auth-main-title">
+        <div class="auth-header">
+          <div class="auth-logo-title" id="auth-main-title">
+            <svg viewBox="0 0 28 28" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M 7 14 C 7 9 11 6 15 6 C 19 6 22 9 22 13 C 22 17 19 20 15 20 C 11 20 7 17 7 14 Z"/>
+              <path d="M 4 10 L 7 14 L 11 11"/>
+              <path d="M 24 18 L 21 14 L 17 17"/>
+            </svg>
+            <span>LOOP</span>
+          </div>
+          <p class="auth-tagline">Hyperlocal reuse marketplace for campus communities</p>
+        </div>
 
-    <div class="top-actions">
-      <button class="btn-corrections" id="header-corrections-btn" title="View Active Learning corrections buffer">
-        <span class="label-text">Corrections Buffer:</span>
-        <span class="counter-badge" id="nav-corrections-count">42</span>
-      </button>
+        <div class="auth-sim-notice" role="note">
+          ℹ️ <strong>Prototype &mdash; sign-in is simulated.</strong> No account is created and nothing is sent or stored.
+        </div>
 
-      <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
-        <span id="theme-toggle-label">🌓 Auto</span>
-      </button>
+        <!-- Accessible Tabs with ARIA and Arrow-Key Navigation -->
+        <div class="auth-tablist" role="tablist" aria-label="Authentication Method">
+          <button type="button" class="auth-tab" id="tab-email" role="tab" aria-selected="true" aria-controls="panel-email" tabindex="0">
+            Email
+          </button>
+          <button type="button" class="auth-tab" id="tab-phone" role="tab" aria-selected="false" aria-controls="panel-phone" tabindex="-1">
+            Phone
+          </button>
+        </div>
+
+        <!-- Email Tabpanel -->
+        <div class="auth-tabpanel" id="panel-email" role="tabpanel" aria-labelledby="tab-email">
+          <form id="form-email-auth" novalidate>
+            <!-- Display name (only visible in create account mode) -->
+            <div class="form-group" id="group-display-name" style="display: none;">
+              <label for="login-name">Display Name</label>
+              <input type="text" id="login-name" class="form-input" autocomplete="name" placeholder="e.g. Aarav Sharma">
+              <div id="login-name-error" class="field-error" aria-live="polite"></div>
+            </div>
+
+            <!-- Email field -->
+            <div class="form-group">
+              <label for="login-email">College or Personal Email</label>
+              <input type="email" id="login-email" class="form-input" autocomplete="email" placeholder="name@adypu.edu.in" required>
+              <div id="login-email-error" class="field-error" aria-live="polite"></div>
+            </div>
+
+            <!-- Password field with show/hide toggle -->
+            <div class="form-group">
+              <label for="login-password">Password (8+ characters)</label>
+              <div class="password-input-wrapper">
+                <input type="password" id="login-password" class="form-input" autocomplete="current-password" placeholder="Enter password" required>
+                <button type="button" class="toggle-password-btn" id="btn-toggle-password" aria-label="Show password" aria-pressed="false">
+                  👁️ Show
+                </button>
+              </div>
+              <div id="login-password-error" class="field-error" aria-live="polite"></div>
+            </div>
+
+            <!-- Confirm password (only in create account mode) -->
+            <div class="form-group" id="group-confirm-password" style="display: none;">
+              <label for="login-password-confirm">Confirm Password</label>
+              <input type="password" id="login-password-confirm" class="form-input" autocomplete="new-password" placeholder="Re-enter password">
+              <div id="login-confirm-error" class="field-error" aria-live="polite"></div>
+            </div>
+
+            <!-- Forgot password link -->
+            <div id="forgot-password-wrap">
+              <button type="button" class="forgot-password-link" id="btn-forgot-password">Forgot password?</button>
+              <div id="forgot-password-notice" class="field-error" style="color: var(--color-success);" aria-live="polite"></div>
+            </div>
+
+            <!-- Submit button -->
+            <button type="submit" id="btn-email-submit" class="btn btn-primary" style="width: 100%; margin-top: 14px; min-height: 44px;">
+              Sign in
+            </button>
+
+            <!-- Toggle between Sign in & Create account -->
+            <div class="auth-mode-toggle">
+              <span id="auth-mode-prompt">Don't have an account?</span>
+              <button type="button" id="btn-toggle-auth-mode">Create account</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Phone Tabpanel -->
+        <div class="auth-tabpanel hidden" id="panel-phone" role="tabpanel" aria-labelledby="tab-phone">
+          <form id="form-phone-auth" novalidate>
+            <div class="form-group">
+              <label for="login-phone">Mobile Number</label>
+              <div class="phone-input-group">
+                <span class="phone-prefix" aria-hidden="true">+91</span>
+                <input type="tel" id="login-phone" class="form-input" autocomplete="tel-national" placeholder="9876543210" maxlength="10" inputmode="numeric" pattern="[6-9][0-9]{9}" required>
+              </div>
+              <div id="login-phone-error" class="field-error" aria-live="polite"></div>
+            </div>
+
+            <button type="button" id="btn-send-otp" class="btn btn-primary" style="width: 100%; min-height: 44px;">
+              Send OTP
+            </button>
+
+            <!-- OTP Verification Section (Revealed after Send OTP) -->
+            <div id="phone-otp-section" style="display: none; margin-top: 16px;">
+              <div class="demo-otp-banner" role="status" aria-live="polite">
+                Demo OTP: <strong>482916</strong> (no SMS is sent)
+              </div>
+
+              <div class="form-group">
+                <label id="otp-label" for="otp-box-0">Enter 6-digit OTP</label>
+                <div class="otp-box-group" role="group" aria-labelledby="otp-label">
+                  <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-box-0" data-index="0" autocomplete="one-time-code" aria-label="Digit 1">
+                  <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-box-1" data-index="1" autocomplete="one-time-code" aria-label="Digit 2">
+                  <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-box-2" data-index="2" autocomplete="one-time-code" aria-label="Digit 3">
+                  <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-box-3" data-index="4" autocomplete="one-time-code" aria-label="Digit 4">
+                  <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-box-4" data-index="4" autocomplete="one-time-code" aria-label="Digit 5">
+                  <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-box-5" data-index="5" autocomplete="one-time-code" aria-label="Digit 6">
+                </div>
+                <div id="login-otp-error" class="field-error" aria-live="polite"></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span id="otp-timer-text" style="font-size: 0.78rem; color: var(--color-text-muted);">Resend in 30s</span>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-resend-otp" disabled>Resend OTP</button>
+              </div>
+
+              <button type="button" id="btn-verify-otp" class="btn btn-primary" style="width: 100%; min-height: 44px;">
+                Verify and continue
+              </button>
+
+              <div id="otp-lockout-alert" class="lockout-alert" style="display: none;" role="alert" aria-live="assertive">
+                ⛔ Too many attempts. Try again in 15 minutes (Simulated rate-limit lock; reload page to reset).
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Auth Step 2: Verify Community -->
+      <section id="auth-step-community" style="display: none;" aria-labelledby="community-step-title">
+        <div class="auth-header">
+          <h2 class="auth-logo-title" id="community-step-title" style="font-size: 1.3rem;">Verify Your Community</h2>
+          <p class="auth-tagline">Verify campus membership to earn the Verified Trader badge (P0)</p>
+        </div>
+
+        <div class="demo-code-pill">
+          Demo join code: <strong>DEMO-2026</strong> &bull; Or any <strong>@adypu.edu.in</strong> email
+        </div>
+
+        <div class="form-group">
+          <label for="community-input">College Email or Society Join Code</label>
+          <input type="text" id="community-input" class="form-input" placeholder="e.g. DEMO-2026 or student@adypu.edu.in">
+          <div id="community-error" class="field-error" aria-live="polite"></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+          <button type="button" id="btn-verify-community" class="btn btn-primary" style="width: 100%; min-height: 44px;">
+            Verify Community
+          </button>
+          <button type="button" id="btn-skip-community" class="btn btn-secondary" style="width: 100%; min-height: 44px;">
+            Skip for now (Leave Unverified)
+          </button>
+        </div>
+      </section>
+
+      <!-- Auth Step 3: Consent Screen -->
+      <section id="auth-step-consent" style="display: none;" aria-labelledby="consent-step-title">
+        <div class="auth-header">
+          <h2 class="auth-logo-title" id="consent-step-title" style="font-size: 1.3rem;">Privacy & Community Consent</h2>
+          <p class="auth-tagline">LOOP principles: privacy-first, coarse location, user control</p>
+        </div>
+
+        <div class="consent-statement-box">
+          <div class="consent-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <div>
+              <strong>What we collect:</strong> Only the items you list, messages you exchange, and corrections you make to AI suggestions (used to train local models via active learning).
+            </div>
+          </div>
+
+          <div class="consent-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="10" r="3"/>
+              <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/>
+            </svg>
+            <div>
+              <strong>Coarse location only:</strong> We store only coarse community or hostel-block areas (geohash &le; 5). Your exact room number or GPS coordinates are never stored or shared.
+            </div>
+          </div>
+
+          <div class="consent-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <div>
+              <strong>Your data, your control:</strong> You can export or delete your listings and account data at any time. Raw unscrubbed photos never leave your device.
+            </div>
+          </div>
+        </div>
+
+        <label class="consent-check-row" for="consent-checkbox">
+          <input type="checkbox" id="consent-checkbox" required>
+          <span>I understand and agree to the LOOP community terms, privacy principles, and data protection pledge.</span>
+        </label>
+
+        <button type="button" id="btn-consent-continue" class="btn btn-primary" style="width: 100%; min-height: 44px;" disabled>
+          Agree and continue
+        </button>
+      </section>
     </div>
-  </header>
+  </main>
+
+  <!-- Dashboard Container (Shown when demo session exists) -->
+  <div id="dashboard-view" class="hidden">
+    <!-- Top App Navigation -->
+    <header class="top-nav" role="navigation">
+      <div class="brand-section">
+        <a href="#overview" class="brand-logo" aria-label="LOOP Home">
+          <svg viewBox="0 0 28 28" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 7 14 C 7 9 11 6 15 6 C 19 6 22 9 22 13 C 22 17 19 20 15 20 C 11 20 7 17 7 14 Z"/>
+            <path d="M 4 10 L 7 14 L 11 11"/>
+            <path d="M 24 18 L 21 14 L 17 17"/>
+          </svg>
+          <span>LOOP</span>
+        </a>
+        <span class="community-pill">
+          <span>📍</span> ADYPU Campus Community (Verified)
+        </span>
+      </div>
+
+      <div class="top-actions">
+        <!-- User Chip & Sign Out -->
+        <div class="user-chip" id="header-user-chip" title="Active demo user session">
+          <span>👤</span>
+          <span class="identifier" id="user-chip-id">user@demo</span>
+          <span class="verify-badge verified" id="user-chip-badge">Verified</span>
+        </div>
+
+        <button type="button" class="btn-signout" id="btn-sign-out" title="Sign out of demo session">
+          Sign out
+        </button>
+
+        <button class="btn-corrections" id="header-corrections-btn" title="View Active Learning corrections buffer">
+          <span class="label-text">Corrections Buffer:</span>
+          <span class="counter-badge" id="nav-corrections-count">42</span>
+        </button>
+
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+          <span id="theme-toggle-label">🌓 Auto</span>
+        </button>
+      </div>
+    </header>
 
   <!-- Mobile Top Nav (Horizontal scrollable pills on small viewports) -->
   <nav class="mobile-nav-bar" aria-label="Mobile Navigation">
@@ -1773,6 +2002,7 @@
 
     </main>
   </div>
+  </div> <!-- /#dashboard-view -->
 
   <script src="app.js"></script>
 </body>
