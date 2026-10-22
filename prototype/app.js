@@ -179,6 +179,7 @@
 
   // Navigation controller
   function navigateTo(screenId) {
+    closeEmailPreviewModal();
     if (screenId === "login" || screenId === "signin") {
       setAuthGateVisible(true);
       window.location.hash = "login";
@@ -491,6 +492,17 @@
         if (target) navigateTo(target);
       });
     });
+
+    const listingsKpi = document.getElementById("overview-kpi-listings-card");
+    if (listingsKpi) {
+      listingsKpi.addEventListener("click", () => {
+        if (window.LOOP && window.LOOP.navigateToDiscover) {
+          window.LOOP.navigateToDiscover("all");
+        } else {
+          navigateTo("discover");
+        }
+      });
+    }
   }
 
   // ==========================================
@@ -1549,6 +1561,33 @@
       });
     }
 
+    // Interactive Star Rating
+    let selectedRating = 5;
+    const starBtns = document.querySelectorAll(".star-rating-btn");
+    const starText = document.getElementById("handover-star-text");
+
+    function updateStarsUI(rating) {
+      selectedRating = rating;
+      starBtns.forEach((btn) => {
+        const r = parseInt(btn.getAttribute("data-rating"), 10);
+        if (r <= rating) {
+          btn.classList.add("active");
+          btn.classList.remove("dimmed");
+        } else {
+          btn.classList.remove("active");
+          btn.classList.add("dimmed");
+        }
+      });
+      if (starText) starText.textContent = `${rating}.0 / 5.0`;
+    }
+
+    starBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const r = parseInt(btn.getAttribute("data-rating"), 10);
+        updateStarsUI(r);
+      });
+    });
+
     // Review submission
     const submitReviewBtn = document.getElementById("submit-review-btn");
     if (submitReviewBtn) {
@@ -1563,7 +1602,7 @@
         reviewCard.innerHTML = `
           <div style="background-color: var(--color-success-bg); color: var(--color-success); padding: 14px; border-radius: var(--radius-md); text-align: center;">
             <strong>✓ Review Verified & Published!</strong>
-            <p style="font-size: 0.8rem; margin-top: 4px;">Rating (5/5) recorded. Seller trust score updated in realtime.</p>
+            <p style="font-size: 0.8rem; margin-top: 4px;">Rating (${selectedRating}/5) recorded. Seller trust score updated in realtime.</p>
           </div>
         `;
         showToast("Verified review submitted successfully!");
@@ -2048,6 +2087,12 @@
       });
     }
 
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalBackdrop && !modalBackdrop.classList.contains("hidden")) {
+        closeEmailPreviewModal();
+      }
+    });
+
     // Header Backend Button
     const headerBackendBtn = document.getElementById("header-backend-btn");
     if (headerBackendBtn) {
@@ -2164,6 +2209,252 @@
       if (authView) authView.classList.add("hidden");
       if (dashView) dashView.classList.remove("hidden");
     }
+  }
+
+  function resetPlatformState() {
+    closeEmailPreviewModal();
+
+    // 1. Reset Snap-to-List
+    state.snap.title = state.snap.initialDraft.title;
+    state.snap.category = state.snap.initialDraft.category;
+    state.snap.subtype = state.snap.initialDraft.subtype;
+    state.snap.brand = state.snap.initialDraft.brand;
+    state.snap.condition = state.snap.initialDraft.condition;
+    state.snap.price = state.snap.initialDraft.price;
+    state.snap.scrubbed = true;
+    state.snap.showHeatmap = false;
+
+    const snapTitle = document.getElementById("snap-title");
+    if (snapTitle) snapTitle.value = state.snap.initialDraft.title;
+    const snapCategory = document.getElementById("snap-category");
+    if (snapCategory) snapCategory.value = state.snap.initialDraft.category;
+    const snapSubtype = document.getElementById("snap-subtype");
+    if (snapSubtype) snapSubtype.value = state.snap.initialDraft.subtype;
+    const snapBrand = document.getElementById("snap-brand");
+    if (snapBrand) snapBrand.value = state.snap.initialDraft.brand;
+    const snapCondition = document.getElementById("snap-condition");
+    if (snapCondition) snapCondition.value = state.snap.initialDraft.condition;
+    const snapSlider = document.getElementById("snap-price-slider");
+    if (snapSlider) {
+      snapSlider.value = state.snap.initialDraft.price;
+      const snapDisplay = document.getElementById("snap-price-display");
+      if (snapDisplay)
+        snapDisplay.textContent = `₹${state.snap.initialDraft.price.toLocaleString("en-IN")}`;
+    }
+    const snapScrubToggle = document.getElementById("snap-scrub-toggle");
+    if (snapScrubToggle) {
+      snapScrubToggle.checked = true;
+      snapScrubToggle.dispatchEvent(new Event("change"));
+    }
+    const snapHeatmapToggle = document.getElementById("snap-heatmap-toggle");
+    if (snapHeatmapToggle) {
+      snapHeatmapToggle.checked = false;
+      snapHeatmapToggle.dispatchEvent(new Event("change"));
+    }
+
+    // 2. Reset Discover Search
+    state.search.query = "study table under 3000";
+    state.search.mode = "semantic";
+    state.search.category = "all";
+    state.search.displayCount = 12;
+
+    const discInput = document.getElementById("discover-search-input");
+    if (discInput) discInput.value = "study table under 3000";
+    const catPills = document.querySelectorAll(
+      "#discover-category-filters .preset-pill[data-category]"
+    );
+    catPills.forEach((p) => {
+      if (p.getAttribute("data-category") === "all") p.classList.add("active");
+      else p.classList.remove("active");
+    });
+    const sSemantic = document.getElementById("search-mode-semantic");
+    const sFts = document.getElementById("search-mode-fts");
+    if (sSemantic && sFts) {
+      sSemantic.classList.add("active");
+      sFts.classList.remove("active");
+    }
+    const discBtn = document.getElementById("discover-search-btn");
+    if (discBtn) discBtn.click();
+
+    // 3. Reset Chat & Handover
+    state.chat.buyerConfirmed = false;
+    state.chat.sellerConfirmed = false;
+    state.chat.handoverCompleted = false;
+    state.chat.reviewSubmitted = false;
+
+    const chatInput = document.getElementById("chat-input-text");
+    if (chatInput) chatInput.value = "";
+    const scamBanner = document.getElementById("chat-scam-banner");
+    if (scamBanner) scamBanner.style.display = "none";
+
+    const msgBox = document.getElementById("chat-messages-box");
+    if (msgBox) {
+      msgBox.innerHTML = `
+        <div class="chat-bubble buyer">
+          <div>Hi! Is this desk still available at the hostel?</div>
+          <span class="bubble-meta">Buyer (Aarav) &bull; 10:14 AM</span>
+        </div>
+        <div class="chat-bubble seller">
+          <div>Yes, still available! Pick up from Hostel Block B.</div>
+          <span class="bubble-meta">Seller (Priya) &bull; 10:16 AM</span>
+        </div>
+        <div class="chat-bubble buyer">
+          <div>Would you take ₹2,000 for it today?</div>
+          <span class="bubble-meta">Buyer (Aarav) &bull; 10:18 AM</span>
+        </div>
+      `;
+    }
+
+    const bConfirm = document.getElementById("handover-buyer-confirm-btn");
+    if (bConfirm) {
+      bConfirm.disabled = false;
+      bConfirm.textContent = "Buyer Confirm Item Received";
+      bConfirm.className = "btn btn-secondary btn-sm";
+    }
+    const sConfirm = document.getElementById("handover-seller-confirm-btn");
+    if (sConfirm) {
+      sConfirm.disabled = false;
+      sConfirm.textContent = "Seller Confirm Handover";
+      sConfirm.className = "btn btn-secondary btn-sm";
+    }
+    const handoverText = document.getElementById("handover-status-text");
+    if (handoverText) {
+      handoverText.innerHTML = "Waiting for both parties to confirm at meetup (0/2 confirmed)";
+      handoverText.style.color = "var(--color-text-muted)";
+    }
+    const revCard = document.getElementById("handover-review-card");
+    if (revCard) {
+      revCard.style.display = "none";
+      revCard.innerHTML = `
+        <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 6px;">Verified Post-Handover Review:</div>
+        <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-bottom: 8px;">Reviews can only be submitted after verified dual-confirmation.</div>
+        <div id="handover-stars-wrap" role="radiogroup" aria-label="Rating" style="display: flex; gap: 6px; margin-bottom: 8px; font-size: 1.25rem; cursor: pointer;">
+          <button type="button" class="star-rating-btn active" data-rating="1" aria-label="1 star" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+          <button type="button" class="star-rating-btn active" data-rating="2" aria-label="2 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+          <button type="button" class="star-rating-btn active" data-rating="3" aria-label="3 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+          <button type="button" class="star-rating-btn active" data-rating="4" aria-label="4 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+          <button type="button" class="star-rating-btn active" data-rating="5" aria-label="5 stars" style="background: none; border: none; padding: 0; font-size: 1.25rem; cursor: pointer;">⭐</button>
+          <span id="handover-star-text" style="font-size: 0.82rem; font-weight: 700; color: var(--color-primary); align-self: center; margin-left: 6px;">5.0 / 5.0</span>
+        </div>
+        <button class="btn btn-primary btn-sm" id="submit-review-btn">Publish Verified Review</button>
+      `;
+      // Re-bind review events
+      const newRevBtn = revCard.querySelector("#submit-review-btn");
+      if (newRevBtn) {
+        newRevBtn.addEventListener("click", () => {
+          if (!state.chat.handoverCompleted) {
+            showToast(
+              "❌ Review rejected: Reviews can only be submitted after a verified handover (Anti-review-fraud rule)."
+            );
+            return;
+          }
+          state.chat.reviewSubmitted = true;
+          revCard.innerHTML = `<div style="background-color: var(--color-success-bg); color: var(--color-success); padding: 14px; border-radius: var(--radius-md); text-align: center;"><strong>✓ Review Verified & Published!</strong><p style="font-size: 0.8rem; margin-top: 4px;">Rating (5/5) recorded. Seller trust score updated in realtime.</p></div>`;
+          showToast("Verified review submitted successfully!");
+        });
+      }
+    }
+
+    // 4. Reset Swap Screen
+    state.swap.calculated = false;
+    state.swap.confirmed = { aarav: false, priya: false, rohan: false };
+
+    const swapDiagram = document.getElementById("swap-diagram-container");
+    if (swapDiagram) {
+      swapDiagram.innerHTML = `
+        <div style="text-align: center; color: var(--color-text-muted); padding: 20px;">
+          <p style="font-weight: 600;">Click "Find Exchange Cycles" above to solve candidate cycles via CP-SAT.</p>
+        </div>
+      `;
+    }
+    const swapStatusBadge = document.getElementById("swap-status-badge");
+    if (swapStatusBadge) {
+      swapStatusBadge.className = "fair-badge fair";
+      swapStatusBadge.innerHTML = "Ready to confirm (0/3)";
+    }
+    const cA = document.getElementById("swap-confirm-btn-a");
+    if (cA) {
+      cA.disabled = false;
+      cA.textContent = "Aarav: Confirm Swap";
+    }
+    const cB = document.getElementById("swap-confirm-btn-b");
+    if (cB) {
+      cB.disabled = false;
+      cB.textContent = "Priya: Confirm Swap";
+    }
+    const cC = document.getElementById("swap-confirm-btn-c");
+    if (cC) {
+      cC.disabled = false;
+      cC.textContent = "Rohan: Confirm Swap";
+    }
+
+    // 5. Reset Trust & Safety
+    const vt = document.getElementById("trust-slider-verified");
+    if (vt) vt.checked = true;
+    const tr = document.getElementById("trust-slider-trades");
+    if (tr) tr.value = 14;
+    const rs = document.getElementById("trust-slider-response");
+    if (rs) rs.value = 0.85;
+    const rt = document.getElementById("trust-slider-rating");
+    if (rt) rt.value = 4.6;
+    if (vt) vt.dispatchEvent(new Event("change"));
+
+    document.querySelectorAll(".mod-flag-card").forEach((card) => {
+      card.style.opacity = "1";
+      card.style.pointerEvents = "auto";
+    });
+
+    // 6. Reset Active Learning
+    state.learning.activeModel.version = "v1.1.0";
+    state.learning.activeModel.accuracy = 86.1;
+    const lBadge = document.getElementById("learning-active-model-badge");
+    if (lBadge) lBadge.textContent = "v1.1.0 (86.1% Top-1 Acc)";
+    const lStatus = document.getElementById("learning-retrain-status");
+    if (lStatus) lStatus.innerHTML = "";
+    const noiseToggle = document.getElementById("learning-simulate-noise");
+    if (noiseToggle) noiseToggle.checked = false;
+
+    // 7. Reset Simulator
+    state.simulator.users = 2500;
+    state.simulator.listingAge = 8;
+    state.simulator.views = 46;
+    state.simulator.currentAsk = 2600;
+    state.simulator.priceFloor = 1800;
+
+    const simUsers = document.getElementById("sim-users-slider");
+    if (simUsers) {
+      simUsers.value = 2500;
+      simUsers.dispatchEvent(new Event("input"));
+    }
+    const dropAge = document.getElementById("price-drop-age-slider");
+    if (dropAge) {
+      dropAge.value = 8;
+      dropAge.dispatchEvent(new Event("input"));
+    }
+    const dropViews = document.getElementById("price-drop-views-slider");
+    if (dropViews) {
+      dropViews.value = 46;
+      dropViews.dispatchEvent(new Event("input"));
+    }
+
+    // 8. Reset Impact
+    state.impact.replacementRate = 0.8;
+    document.querySelectorAll(".impact-coeff-pill").forEach((pill) => {
+      if (pill.getAttribute("data-coeff") === "0.8") pill.classList.add("active");
+      else pill.classList.remove("active");
+    });
+    const c1 = document.querySelector(".impact-coeff-pill[data-coeff='0.8']");
+    if (c1) c1.click();
+
+    // 9. Reset Corrections count
+    state.correctionsCount = 42;
+    const cBadge = document.getElementById("nav-corrections-count");
+    if (cBadge) cBadge.textContent = "42";
+    const kpiCorrections = document.getElementById("overview-kpi-corrections");
+    if (kpiCorrections) kpiCorrections.textContent = "42 logged";
+
+    // 10. Reset view to overview
+    navigateTo("overview");
   }
 
   function resetAuthForms() {
@@ -2656,6 +2947,7 @@
     if (btnSignOut) {
       btnSignOut.addEventListener("click", () => {
         clearDemoSession();
+        resetPlatformState();
         resetAuthForms();
         setAuthGateVisible(true);
         showToast("Signed out of demo session.");
